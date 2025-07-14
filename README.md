@@ -32,15 +32,31 @@ Before you begin, make sure you have the following installed:
 
    The app will be available at the local address shown in your terminal (usually http://localhost:5173).
 
-4. **Build for production:**
+## Backend Setup
+
+1. **Navigate to the backend directory:**
 
    ```sh
-   npm run build
+   cd backend
    ```
 
-5. **Preview the production build:**
+2. **(Recommended) Create a virtual environment:**
+
    ```sh
-   npm run preview
+   python -m venv venv
+   source venv/bin/activate  # On Windows use: venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+4. **Run the FastAPI server:**
+
+   ```sh
+   uvicorn main:app --reload
    ```
 
 ## Additional Commands
