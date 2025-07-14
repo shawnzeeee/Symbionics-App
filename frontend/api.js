@@ -8,4 +8,12 @@ export async function getHello() {
   return response.json();
 }
 
+export async function getDevices(){
+  const response = await fetch(`${API_BASE_URL}/devices`);
+  if (!response.ok){
+    throw new Error("Failed to fetch devices");
+  }
+  return response.json();
+}
+
 // Add more API functions here as needed

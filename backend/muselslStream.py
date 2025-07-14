@@ -1,11 +1,16 @@
 import time
 from pylsl import StreamInlet, resolve_streams
 import subprocess
+from muselsl import stream
 
-def start_muse_stream():
+
+def get_devices_list():
+    return subprocess.Popen(['muselsl', 'list'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+def start_muse_stream(MAC_ADDRESS):
     print("[INFO] Starting Muse stream...")
     # Start the stream in a background process
-    return subprocess.Popen(["muselsl", "stream"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return subprocess.Popen(["muselsl", "stream",'--address', MAC_ADDRESS], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def muse_connected():
     streams = resolve_streams()
@@ -32,3 +37,5 @@ def connect_to_eeg_stream():
         raise RuntimeError("[ERROR] No EEG stream found. Is Muse powered on?")
     print("[INFO] EEG stream found.")
     return StreamInlet(streams[0])
+
+
