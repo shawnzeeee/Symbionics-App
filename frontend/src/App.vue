@@ -31,6 +31,7 @@
         </ul>
       </div>
     </div>
+    <button @click="fetchHello">Get Hello</button>
     <footer class="mt-8 text-gray-400 text-sm">
       &copy; 2025 Symbionics. All rights reserved.
     </footer>
@@ -38,7 +39,16 @@
 </template>
 
 <script setup>
-// No script needed for static About page
+import { getHello } from "../api";
+
+async function fetchHello() {
+  try {
+    const data = await getHello();
+    alert(data.message);
+  } catch (error) {
+    alert("Error" + error.message);
+  }
+}
 </script>
 
 <style scoped>
