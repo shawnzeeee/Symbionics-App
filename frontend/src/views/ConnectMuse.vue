@@ -3,10 +3,10 @@
     <h2 class="text-2xl font-bold mb-4">Available Devices</h2>
     <button
       class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      @click="fetchDevices"
+      @click="refreshDevices"
       :disabled="loading"
     >
-      {{ loading ? 'Refreshing...' : 'Refresh' }}
+      {{ loading ? "Refreshing..." : "Refresh" }}
     </button>
     <ul>
       <li
@@ -30,23 +30,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import {fetchDevices} from '../../api.js'
+import { ref } from "vue";
+import { fetchDevices } from "../../api.js";
 const devices = ref([]);
 const loading = ref(false);
 
 // Dummy function to simulate fetching devices
 async function getListOfDevices() {
   loading.value = true;
-  // Simulate async fetch
-  await new Promise(resolve => setTimeout(resolve, 800));
-  // Replace this with actual device fetching logic
-  devices.value = [
-    { id: 1, name: 'Muse S (SN12345)' },
-    { id: 2, name: 'Muse 2 (SN67890)' },
-    { id: 3, name: 'Muse 2016 (SN54321)' },
-  ];
-  loading.value = false;
+  try {
+    const response = await fetchDevices();
+    console.log("Fetched devices:", response); // Print the response to the console
+    devices.value = response;
+  } catch (error) {
+    alert("Failed to fetch devices: " + error.message);
+    devices.value = [];
+  } finally {
+    loading.value = false;
+  }
 }
 
 function refreshDevices() {
@@ -59,7 +60,7 @@ function connectToDevice(device) {
 }
 
 // Fetch devices on mount
-fetchDevices();
+getListOfDevices();
 </script>
 
 <style scoped>

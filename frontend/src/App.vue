@@ -1,13 +1,11 @@
 <template>
-    <div id="app">
-      <!-- Add router-view for Vue Router -->
-      <router-view />
-    </div>
-  
+  <div id="app">
+    <router-view />
+  </div>
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView } from "vue-router";
 
 import { getHello } from "../api";
 
