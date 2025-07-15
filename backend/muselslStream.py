@@ -1,12 +1,15 @@
 import time
 from pylsl import StreamInlet, resolve_streams
 import subprocess
-from muselsl import stream
 
 
 def get_devices_list():
-    return subprocess.Popen(['muselsl', 'list'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
+    print("[INFO] Getting available Muse Devices.")
+    response = subprocess.run(['muselsl', 'list'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if response.stderr:
+        return response.stderr
+    else:
+        return response.stdout
 def start_muse_stream(MAC_ADDRESS):
     print("[INFO] Starting Muse stream...")
     # Start the stream in a background process

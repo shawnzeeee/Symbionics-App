@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from muselslStream import get_devices_list
 
 app = FastAPI()
 
@@ -20,4 +20,6 @@ def read_root():
 
 @app.get("/api/devices")
 def read_root():
-    return {"message": "Hello from FastAPI!"}
+    response = get_devices_list()
+    print(response)
+    return {"message": response}
