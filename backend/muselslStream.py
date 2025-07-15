@@ -10,6 +10,8 @@ def get_devices_list():
         return response.stderr
     else:
         return response.stdout
+    
+    
 def start_muse_stream(MAC_ADDRESS):
     print("[INFO] Starting Muse stream...")
     # Start the stream in a background process

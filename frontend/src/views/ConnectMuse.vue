@@ -11,7 +11,7 @@
     <ul>
       <li
         v-for="device in devices"
-        :key="device.id"
+        :key="device.mac"
         class="flex items-center justify-between py-2 border-b"
       >
         <span>{{ device.name }}</span>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { fetchDevices } from "../../api.js";
 const devices = ref([]);
 const loading = ref(false);
@@ -40,8 +40,8 @@ async function getListOfDevices() {
   loading.value = true;
   try {
     const response = await fetchDevices();
-    console.log("Fetched devices:", response); // Print the response to the console
-    devices.value = response;
+    devices.value = response.message;
+    console.log("Fetched devices:", devices);
   } catch (error) {
     alert("Failed to fetch devices: " + error.message);
     devices.value = [];
@@ -50,8 +50,12 @@ async function getListOfDevices() {
   }
 }
 
+watch(devices, (newVal, oldVal) => {
+  console.log("Devices changed:", newVal);
+});
+
 function refreshDevices() {
-  fetchDevices();
+  getListOfDevices();
 }
 
 function connectToDevice(device) {
@@ -60,7 +64,7 @@ function connectToDevice(device) {
 }
 
 // Fetch devices on mount
-getListOfDevices();
+//getListOfDevices();
 </script>
 
 <style scoped>
