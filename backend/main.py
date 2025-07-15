@@ -32,7 +32,7 @@ def read_root():
             match = re.search(r"Found device (Muse-\w+), MAC Address ([\dA-F:]+)", line)     
             device = {
                 "name": match.group(1),
-                "MAC Address": match.group(2)
+                "mac": match.group(2)
             }  
             devices.append(device)
             
