@@ -51,7 +51,7 @@ async function getListOfDevices() {
 }
 
 function refreshDevices() {
-  fetchDevices();
+  getListOfDevices();
 }
 
 function connectToDevice(device) {
@@ -60,7 +60,7 @@ function connectToDevice(device) {
 }
 
 // Fetch devices on mount
-getListOfDevices();
+//getListOfDevices();
 </script>
 
 <style scoped>
