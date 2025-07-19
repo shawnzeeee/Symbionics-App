@@ -1,11 +1,12 @@
 <template>
   <div id="app">
-    <router-view />
+    <DevicesList />
   </div>
 </template>
 
 <script setup>
 import { RouterLink, RouterView } from "vue-router";
+import DevicesList from "./components/DevicesList.vue";
 
 import { getHello } from "../api";
 

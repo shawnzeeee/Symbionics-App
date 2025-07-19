@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from muselslStream import get_devices_list
+from fastapi import BackgroundTasks
 import re
+import threading
+
+
+tasks = {}
 
 app = FastAPI()
 
@@ -18,7 +22,7 @@ app.add_middleware(
 def read_root():
     return {"message": "Hello from FastAPI!"}
 
-
+from muselslStream import get_devices_list
 @app.get("/api/devices")
 def read_root():
     response = get_devices_list()
@@ -37,4 +41,20 @@ def read_root():
             devices.append(device)
             
     print(devices)
-    return {"message": devices}
+    return {"data": devices}
+
+from muselslStream import start_muse_stream
+@app.get("/api/start-stream")
+def connect_muse(mac_address: str):
+    response = start_muse_stream(mac_address)
+    if "Streaming EEG" in response:
+        return {"data": "Stream started"}
+    return {"data" : "Stream Stopped"}
+
+
+from muselslStream import end_muse_stream
+@app.get("/api/end-stream")
+def disconnect_muse():
+    response = end_muse_stream()
+    return {"data": response}
+
