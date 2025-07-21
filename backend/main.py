@@ -66,7 +66,7 @@ def disconnect_muse():
     pylsl_stop_event.set()
     if pylsl_thread is not None:
         pylsl_thread.join()  # Wait for the thread to terminate
-    muselsl_stop_event.is_set()
+    muselsl_stop_event.set()
     if muselsl_thread is not None:
         muselsl_thread.join()
     return {"data": "Pylsl and muselsl terminated"}
