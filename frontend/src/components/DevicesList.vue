@@ -11,7 +11,7 @@
     <ul>
       <li
         v-for="device in devices"
-        :key="device.mac"
+        :key="device.address"
         class="flex items-center justify-between py-2 border-b"
       >
         <span>{{ device.name }}</span>
@@ -38,7 +38,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import { fetchDevices, connectMuse, disconnectMuse } from "../../api.js";
-const devices = ref([{ name: "Muse-1234", mac: "1234" }]);
+const devices = ref([{ name: "Muse-1234", address: "00:55:DA:B0:1E:78" }]);
 const loading = ref(false);
 
 // Dummy function to simulate fetching devices
@@ -63,7 +63,7 @@ function refreshDevices() {
 //Implement functionality to allow ONLY ONE connection at a time
 async function connectToDevice(device) {
   try {
-    const response = await connectMuse(device.mac);
+    const response = await connectMuse(device.address);
     console.log(response.data);
   } catch (error) {
     alert("Failed to connect to device: " + error.message);

@@ -22,39 +22,41 @@ app.add_middleware(
 def read_root():
     return {"message": "Hello from FastAPI!"}
 
-from muselslStream import get_devices_list
+from muse_stream import get_devices_list
 @app.get("/api/devices")
 def read_root():
     response = get_devices_list()
-    lines = response.strip().splitlines()
+    #lines = response.strip().splitlines()
     devices = []
-    print(response)
-    for line in lines[1:]:
-        if line == "No Muses found":
-            break
-        if "Found device" in line and "MAC Address" in line:
-            match = re.search(r"Found device (Muse-\w+), MAC Address ([\dA-F:]+)", line)     
-            device = {
-                "name": match.group(1),
-                "mac": match.group(2)
-            }  
-            devices.append(device)
-            
+    devices = response
     print(devices)
     return {"data": devices}
 
-from muselslStream import start_muse_stream
+from muse_stream import start_muse_stream, update_eeg_buffer
+pylsl_stop_event = threading.Event()
+muselsl_start_event = threading.Event()
+muselsl_stop_event = threading.Event()
+pylsl_thread = None
+muselsl_thread = None
 @app.get("/api/start-stream")
 def connect_muse(mac_address: str):
-    response = start_muse_stream(mac_address)
-    if "Streaming EEG" in response:
-        return {"data": "Stream started"}
+    global muselsl_thread, muselsl_start_event, muselsl_stop_event, pylsl_thread, pylsl_stop_event
+    pylsl_stop_event.clear()
+    muselsl_stop_event.clear()
+    #start_muse_stream(mac_address, muselsl_stop_event)
+    muselsl_thread = threading.Thread(target=start_muse_stream, args=(mac_address, muselsl_start_event, muselsl_stop_event))
+    #pylsl_thread = threading.Thread(target=update_eeg_buffer, args=(stop_event,))
+    #pylsl_thread.start()
     return {"data" : "Stream Stopped"}
 
 
-from muselslStream import end_muse_stream
+from muse_stream import end_muse_stream
 @app.get("/api/end-stream")
 def disconnect_muse():
+    global pylsl_stop_event
+    pylsl_stop_event.set()
+    #if pylsl_thread is not None:
+        #pylsl_thread.join()  # Wait for the thread to terminate
     response = end_muse_stream()
     return {"data": response}
 
