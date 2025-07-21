@@ -5,7 +5,7 @@ from shutil import which
 from sys import platform
 from time import time
 import logging
-
+import threading
 import pygatt
 from pylsl import StreamInfo, StreamOutlet, local_clock
 
@@ -126,6 +126,7 @@ def find_muse(name=None, backend='auto'):
 # Begins LSL stream(s) from a Muse with a given address with data sources determined by arguments
 def stream(
     address,
+    start_event,
     stop_event,
     backend='auto',
     interface=None,
@@ -230,6 +231,7 @@ def stream(
         if(didConnect):
             print('Connected.')
             muse.start()
+            start_event.set()
 
             eeg_string = " EEG" if not eeg_disabled else ""
             ppg_string = " PPG" if ppg_enabled else ""
@@ -239,7 +241,7 @@ def stream(
             print("Streaming%s%s%s%s..." %
                 (eeg_string, ppg_string, acc_string, gyro_string))
 
-            while time_func() - muse.last_timestamp < AUTO_DISCONNECT_DELAY:
+            while time_func() - muse.last_timestamp < AUTO_DISCONNECT_DELAY and not stop_event.is_set():
                 try:
                     backends.sleep(1)
                 except KeyboardInterrupt:

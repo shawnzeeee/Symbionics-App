@@ -33,30 +33,41 @@ def read_root():
     return {"data": devices}
 
 from muse_stream import start_muse_stream, update_eeg_buffer
-pylsl_stop_event = threading.Event()
+import time
+
 muselsl_start_event = threading.Event()
 muselsl_stop_event = threading.Event()
+pylsl_stop_event = threading.Event()
 pylsl_thread = None
 muselsl_thread = None
 @app.get("/api/start-stream")
 def connect_muse(mac_address: str):
     global muselsl_thread, muselsl_start_event, muselsl_stop_event, pylsl_thread, pylsl_stop_event
     pylsl_stop_event.clear()
+    muselsl_start_event.clear()
     muselsl_stop_event.clear()
-    #start_muse_stream(mac_address, muselsl_stop_event)
     muselsl_thread = threading.Thread(target=start_muse_stream, args=(mac_address, muselsl_start_event, muselsl_stop_event))
-    #pylsl_thread = threading.Thread(target=update_eeg_buffer, args=(stop_event,))
-    #pylsl_thread.start()
+    muselsl_thread.start()
+
+    while not muselsl_start_event.is_set() and muselsl_thread.is_alive():
+        time.sleep(0.1)
+
+    if muselsl_start_event.is_set():
+        pylsl_thread = threading.Thread(target=update_eeg_buffer, args=(pylsl_stop_event,))
+        pylsl_thread.start()
+
     return {"data" : "Stream Stopped"}
 
 
 from muse_stream import end_muse_stream
 @app.get("/api/end-stream")
 def disconnect_muse():
-    global pylsl_stop_event
+    global muselsl_thread, muselsl_stop_event, pylsl_stop_event
     pylsl_stop_event.set()
-    #if pylsl_thread is not None:
-        #pylsl_thread.join()  # Wait for the thread to terminate
-    response = end_muse_stream()
-    return {"data": response}
+    if pylsl_thread is not None:
+        pylsl_thread.join()  # Wait for the thread to terminate
+    muselsl_stop_event.is_set()
+    if muselsl_thread is not None:
+        muselsl_thread.join()
+    return {"data": "Pylsl and muselsl terminated"}
 

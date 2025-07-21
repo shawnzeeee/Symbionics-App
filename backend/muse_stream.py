@@ -22,13 +22,13 @@ def get_devices_list():
         asyncio.set_event_loop(None)
     
     
-def start_muse_stream(MAC_ADDRESS, stop_event):
+def start_muse_stream(MAC_ADDRESS, start_event, stop_event):
     print("[INFO] Starting muselsl stream...")
     global stream_process
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        stream(MAC_ADDRESS, stop_event=stop_event)
+        stream(MAC_ADDRESS, start_event, stop_event)
         print("Connected")
     finally:
         asyncio.set_event_loop(None)
