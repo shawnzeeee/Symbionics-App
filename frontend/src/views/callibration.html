@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Muse Calibration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-[#19596e] min-h-screen font-sans relative flex flex-col items-center justify-center px-4">
+
+  <!-- STEP 1: Start Calibration -->
+  <div id="step1" class="flex flex-col items-center">
+    <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
+    <button 
+      onclick="nextStep('step2')" 
+      class="bg-[#528aa3] text-white px-10 py-6 rounded-md text-lg text-center"
+    >
+      Press to start<br>3 min calibration video
+    </button>
+  </div>
+
+  <!-- STEP 2: Calibration Video -->
+  <div id="step2" class="hidden flex flex-col items-center">
+    <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
+    <div class="bg-[#528aa3] text-white px-10 py-6 rounded-md text-lg text-center">
+      *Insert python script video here*
+    </div>
+    <button 
+      onclick="nextStep('step3')" 
+      class="mt-8 bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition">
+      Continue
+    </button>
+  </div>
+
+  <!-- STEP 3: Enter File Name -->
+  <div id="step3" class="hidden flex flex-col items-center">
+    <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
+    <div class="bg-[#528aa3] text-white p-6 rounded-md text-center w-72">
+      <label class="block mb-4">Enter file name for EEG data:</label>
+      <input id="filename" type="text" placeholder="e.g., trial1.csv"
+             class="w-full text-[#19596e] px-3 py-2 rounded" />
+    </div>
+    <button 
+      onclick="saveFile()" 
+      class="mt-6 bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition">
+      Save
+    </button>
+  </div>
+
+  <!-- STEP 4: Confirmation -->
+  <div id="step4" class="hidden flex flex-col items-center">
+    <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
+    <div class="bg-[#528aa3] text-white px-12 py-6 rounded-md text-xl">
+      Data file saved!
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="absolute bottom-6 left-6">
+    <button 
+      onclick="goBack()" 
+      class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
+    >
+      Back
+    </button>
+  </div>
+
+  <!-- Return to Muse Data Screen Button -->
+    <div class="absolute bottom-6 right-6">
+  <button 
+    onclick="location.href='museData.html'" 
+    class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
+  >
+    Return to Muse Data Screen
+  </button>
+    </div>
+
+
+  <script>
+    let currentStep = "step1";
+    const steps = ["step1", "step2", "step3", "step4"];
+
+    function nextStep(stepId) {
+      document.getElementById(currentStep).classList.add("hidden");
+      document.getElementById(stepId).classList.remove("hidden");
+      currentStep = stepId;
+    }
+
+    function saveFile() {
+      const name = document.getElementById('filename').value;
+      if (!name) {
+        alert('Please enter a file name.');
+        return;
+      }
+      // Placeholder save logic — replace with actual file save
+      console.log("Saving EEG data as:", name);
+      nextStep("step4");
+    }
+
+    function goBack() {
+      const index = steps.indexOf(currentStep);
+      if (index > 0) {
+        document.getElementById(currentStep).classList.add("hidden");
+        const prev = steps[index - 1];
+        document.getElementById(prev).classList.remove("hidden");
+        currentStep = prev;
+      } else {
+        location.href = 'checkElectrodes.html'; // previous full-screen page
+      }
+    }
+  </script>
+
+</body>
+</html>
