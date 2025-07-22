@@ -1,7 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import BackgroundTasks
-import re
 import threading
 
 

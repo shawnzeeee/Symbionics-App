@@ -2,11 +2,10 @@ import time
 from pylsl import StreamInlet, resolve_streams
 import subprocess
 import numpy as np
-from museValidation import checkSignal
+from muse_validation import checkSignal
 from muselsl.stream import stream
 from muselsl.stream import list_muses
 import threading
-eeg_buffer = None
 
 stream_process = None
 
@@ -32,15 +31,6 @@ def start_muse_stream(MAC_ADDRESS, start_event, stop_event):
         print("Connected")
     finally:
         asyncio.set_event_loop(None)
-    # stream_process = subprocess.Popen(["muselsl", "stream",'--address', MAC_ADDRESS], stdout=subprocess.PIPE, stderr=subprocess.PIPE,bufsize=1, text=True)
-    # # Example: Read output line by line in a separate thread
-    # def log_reader(proc):
-    #     for line in proc.stdout:
-    #         print("[muselsl stdout]", line.strip())
-    #     for line in proc.stderr:
-    #         print("[muselsl stderr]", line.strip())
-
-    # threading.Thread(target=log_reader, args=(stream_process,), daemon=True).start()
     
 def end_muse_stream():
     print("[INFO] Ending muselsl stream...")
@@ -79,6 +69,9 @@ def connect_to_eeg_stream():
     print("[INFO] pylsl found muselsl EEG stream.")
     return StreamInlet(streams[0])
 
+eeg_buffer = None
+eeg_buffer_lock = threading.Lock()
+
 def update_eeg_buffer(stop_event):
     global eeg_buffer
     buffer_size = 4 * 250 *2
@@ -88,9 +81,9 @@ def update_eeg_buffer(stop_event):
         inlet = connect_to_eeg_stream()
         while not stop_event.is_set():
             sample, timestamp = inlet.pull_sample()
-            #print(sample)
-            eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
-            eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)
+            with eeg_buffer_lock:
+                eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
+                eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)
     except KeyboardInterrupt:
         print("\n[INFO] Stopping...")
     except:
