@@ -2,7 +2,7 @@ import time
 from pylsl import StreamInlet, resolve_streams
 import subprocess
 import numpy as np
-from muse_validation import checkSignal
+from muse_validation import check_signal
 from muselsl.stream import stream
 from muselsl.stream import list_muses
 import threading
@@ -71,9 +71,11 @@ def connect_to_eeg_stream():
 
 eeg_buffer = None
 eeg_buffer_lock = threading.Lock()
+sample = None
+timestamp = None
 
-def update_eeg_buffer(stop_event):
-    global eeg_buffer
+def begin_streaming_data(stop_event):
+    global eeg_buffer, sample, timestamp
     buffer_size = 4 * 250 *2
     eeg_buffer = np.zeros(buffer_size, dtype=np.float32)
     try:
@@ -89,6 +91,9 @@ def update_eeg_buffer(stop_event):
     except:
         print("\n Something went wrong creating EEG buffer")
     return "Stream Ended"
+
+def save_data_to_csv():
+    return
 
 
 def check_signal(eeg_buffer):

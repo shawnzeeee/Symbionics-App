@@ -31,7 +31,7 @@ def read_root():
     print(devices)
     return {"data": devices}
 
-from muse_stream import start_muse_stream, update_eeg_buffer
+from muse_stream import start_muse_stream, begin_streaming_data
 import time
 
 muselsl_start_event = threading.Event()
@@ -52,7 +52,7 @@ def connect_muse(mac_address: str):
         time.sleep(0.1)
 
     if muselsl_start_event.is_set():
-        pylsl_thread = threading.Thread(target=update_eeg_buffer, args=(pylsl_stop_event,))
+        pylsl_thread = threading.Thread(target=begin_streaming_data, args=(pylsl_stop_event,))
         pylsl_thread.start()
 
     return {"data" : "Stream Stopped"}
