@@ -26,7 +26,7 @@
 import { useRouter } from 'vue-router'
 const router = useRouter()
 // Use require for static asset if using Vite, or adjust as needed
-const logoUrl = new URL('../views/symbionics-high-resolution-logo_1.png', import.meta.url).href
+const logoUrl = new URL('../assets/symbionics-high-resolution-logo_1.png', import.meta.url).href
 
 function goToConnectMuse() {
   router.push({ name: 'ConnectMuse' })
