@@ -4,9 +4,33 @@ const routes = [
   {
     path: "/",
     name: "Home",
-    component: () => import("../App.vue"), // Replace with your actual Home component if needed
+    component: () => import("../views/Home.vue"),
   },
-  // Add more routes here as needed
+  {
+    path: "/connect-muse",
+    name: "ConnectMuse",
+    component: () => import("../views/ConnectMuse.vue"), // If you have a Vue file, use it instead
+  },
+  {
+    path: "/muse-data",
+    name: "MuseData",
+    component: () => import("../views/MuseData.vue"), // If you have a Vue file, use it instead
+  },
+  {
+    path: "/final",
+    name: "Final",
+    component: () => import("../views/Final.vue"), // If you have a Vue file, use it instead
+  },
+  {
+    path: "/check-electrodes",
+    name: "CheckElectrodes",
+    component: () => import("../views/CheckElectrodes.vue"), // If you have a Vue file, use it instead
+  },
+  {
+    path: "/calibration",
+    name: "Calibration",
+    component: () => import("../views/Calibration.vue"), // If you have a Vue file, use it instead
+  },
 ];
 
 const router = createRouter({
