@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muse Data Upload</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-[#19596e] min-h-screen flex flex-col items-center justify-center font-sans relative px-4">
+
+  <!-- STEP 1: File Selection -->
+  <div id="step1" class="flex flex-col items-center">
+    <h1 class="text-2xl md:text-3xl font-medium text-center mb-8">
+      Select Muse data to load to Glove
+    </h1>
+    <div class="flex gap-8 justify-center w-full max-w-4xl">
+      <!-- File List -->
+      <div id="fileList" class="bg-[#528aa3] text-white rounded-md p-6 w-64 flex flex-col gap-4 text-lg font-normal">
+        <div class="cursor-pointer hover:underline" onclick="selectFile(this)">Nickdata1.csv</div>
+        <div class="cursor-pointer hover:underline" onclick="selectFile(this)">Shawndata1.csv</div>
+        <div class="cursor-pointer hover:underline" onclick="selectFile(this)">Shawndata2.csv</div>
+      </div>
+
+      <!-- Load/New Buttons -->
+      <div class="flex flex-col justify-center gap-6">
+        <button onclick="loadFile()" class="bg-sky-400 text-[#19596e] px-6 py-3 rounded hover:bg-sky-500 transition">
+          Load
+        </button>
+        <button onclick="location.href='checkElectrodes.html'" class="bg-sky-400 text-[#19596e] px-6 py-3 rounded hover:bg-sky-500 transition">
+          New
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Loading -->
+  <div id="step2" class="hidden flex flex-col items-center justify-center text-center">
+    <h2 class="text-xl md:text-2xl font-medium">Loading screen here maybe<br>while waiting for the Pi to confirm data is sent</h2>
+  </div>
+
+  <!-- STEP 3: Success -->
+  <div id="step3" class="hidden flex flex-col items-center justify-center text-center">
+    <h1 class="text-2xl md:text-3xl font-medium mb-8">Select Muse data to load to Glove</h1>
+    <div class="bg-[#528aa3] text-white px-12 py-6 rounded-md text-xl">
+      Data successfully sent
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="absolute bottom-6 left-6">
+    <button onclick="location.href='1home.html'" 
+            class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition">
+      Back
+    </button>
+  </div>
+
+  <!-- Next Button for Step 3 -->
+    <div id="nextButton" class="hidden absolute bottom-6 right-6">
+  <button 
+    onclick="location.href='final.html'" 
+    class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
+  >
+    Next
+  </button>
+    </div>
+
+  <script>
+    let selectedFile = null;
+
+    function selectFile(el) {
+      document.querySelectorAll('#fileList > div').forEach(div => {
+        div.classList.remove('font-bold', 'underline');
+      });
+      el.classList.add('font-bold', 'underline');
+      selectedFile = el.textContent;
+    }
+
+    function loadFile() {
+      if (!selectedFile) {
+        alert("Please select a file to load.");
+        return;
+      }
+
+      // Show loading
+      document.getElementById("step1").classList.add("hidden");
+      document.getElementById("step2").classList.remove("hidden");
+
+      // Simulate loading delay
+      setTimeout(() => {
+        document.getElementById("step2").classList.add("hidden");
+        document.getElementById("step3").classList.remove("hidden");
+        document.getElementById("nextButton").classList.remove("hidden");
+      }, 2000); // Adjust timing if needed
+    }
+  </script>
+
+</body>
+</html>

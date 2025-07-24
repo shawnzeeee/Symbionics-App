@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Electrode Calibration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-white min-h-screen font-sans flex flex-col items-center px-4 relative">
+
+  <!-- Title -->
+  <h1 class="text-2xl md:text-3xl font-medium text-center text-[#19596e] mt-12">
+    Electrode Calibration: Place Muse on forehead
+  </h1>
+
+  <!-- Electrode Checker Box -->
+  <div class="bg-[#528aa3] p-8 rounded-md w-full max-w-md space-y-6 text-lg mt-12">
+    <div class="flex justify-between items-center">
+      <span>Electrode 1</span>
+      <div id="e1" class="w-16 h-6 bg-gray-300 rounded"></div>
+    </div>
+    <div class="flex justify-between items-center">
+      <span>Electrode 2</span>
+      <div id="e2" class="w-16 h-6 bg-gray-300 rounded"></div>
+    </div>
+    <div class="flex justify-between items-center">
+      <span>Electrode 3</span>
+      <div id="e3" class="w-16 h-6 bg-gray-300 rounded"></div>
+    </div>
+    <div class="flex justify-between items-center">
+      <span>Electrode 4</span>
+      <div id="e4" class="w-16 h-6 bg-gray-300 rounded"></div>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="absolute bottom-6 left-6">
+    <button 
+      onclick="location.href='connectMuse.html'" 
+      class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
+    >
+      Back
+    </button>
+  </div>
+
+  <!-- Next Button -->
+  <div class="absolute bottom-6 right-6">
+    <button 
+      onclick="location.href='callibration.html'" 
+      class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
+    >
+      Next
+    </button>
+  </div>
+
+  <!-- Simulate Connection -->
+  <script>
+    function activateElectrodes() {
+      const ids = ['e1', 'e2', 'e3', 'e4'];
+      ids.forEach((id, index) => {
+        setTimeout(() => {
+          document.getElementById(id).classList.remove('bg-gray-300');
+          document.getElementById(id).classList.add('bg-green-400');
+        }, index * 700);
+      });
+    }
+
+    window.onload = activateElectrodes;
+  </script>
+
+</body>
+</html>
