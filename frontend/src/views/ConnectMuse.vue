@@ -31,7 +31,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import { fetchDevices } from "../../api.js";
+import { fetchDevices } from "../api.js";
 const devices = ref([]);
 const loading = ref(false);
 

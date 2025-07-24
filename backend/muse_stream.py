@@ -91,6 +91,16 @@ def update_eeg_buffer(stop_event):
     return "Stream Ended"
 
 
+def check_signal(eeg_buffer):
+    # eeg_buffer shape: (num_samples, num_channels)
+    eeg_buffer = eeg_buffer.reshape(500,4)
+    signal_quality = []
+    for i in range(eeg_buffer.shape[1]):
+        channel_data = eeg_buffer[:, i]
+        std = channel_data.std()
+        signal_quality.append(std)
+    return {"TP9": signal_quality[0], "AF7": signal_quality[1], "AF8": signal_quality[2], "TP10": signal_quality[3]}
+
 def get_eeg_buffer():
     global eeg_buffer
     return eeg_buffer

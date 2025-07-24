@@ -37,7 +37,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import { fetchDevices, connectMuse, disconnectMuse } from "../../api.js";
+import { fetchDevices, connectMuse, disconnectMuse } from "../api.js";
 const devices = ref([{ name: "Muse-1234", address: "00:55:DA:B0:1E:78" }]);
 const loading = ref(false);
 

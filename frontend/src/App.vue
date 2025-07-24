@@ -8,7 +8,7 @@
 import { RouterLink, RouterView } from "vue-router";
 import DevicesList from "./components/DevicesList.vue";
 
-import { getHello } from "../api";
+import { getHello } from "./api";
 
 async function fetchHello() {
   try {

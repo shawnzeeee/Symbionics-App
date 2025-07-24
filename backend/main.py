@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import threading
+import asyncio
 
 
 tasks = {}
@@ -56,6 +57,22 @@ def connect_muse(mac_address: str):
 
     return {"data" : "Stream Stopped"}
 
+from muse_stream import check_signal, get_eeg_buffer
+@app.get("/api/check-signal")
+async def check_muse_signal(websocket: WebSocket):
+    global muselsl_thread, pylsl_thread
+    if muselsl_thread.is_alive() and pylsl_thread.is_alive():
+        await websocket.accept()
+        try:
+            while True:
+                eeg_buffer = get_eeg_buffer()
+                signal_quality = check_signal(eeg_buffer)
+                await websocket.sendn_json(signal_quality)
+                asyncio.sleep(1)
+        except WebSocketDisconnect:
+            print("WebSocket disconnected")
+
+    return {"data": "Could not find stream"}
 
 from muse_stream import end_muse_stream
 @app.get("/api/end-stream")
