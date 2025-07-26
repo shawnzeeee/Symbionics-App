@@ -299,26 +299,27 @@ def send_gesture_classification(gesture_code):
     print(f"[SHM] Sent gesture classification: {gesture_code}")
 
 
-# --- MAIN LOOP ---
-show_instructions()
+def calibrate():
+    # --- MAIN LOOP ---
+    show_instructions()
 
-session_start = time.time()
-cycle_count = 0
+    session_start = time.time()
+    cycle_count = 0
 
-while time.time() - session_start < total_duration:
-    play_balanced_videos_for(cycle_duration)
-    if (time.time() - session_start > total_duration):
-        break
-    print("[BREAK] Taking a break...")
-    break_timestamp = int(time.time() * 1000)  # 13-digit ms precision
-    send_gesture_classification(1)
-    show_break(break_duration)
+    while time.time() - session_start < total_duration:
+        play_balanced_videos_for(cycle_duration)
+        if (time.time() - session_start > total_duration):
+            break
+        print("[BREAK] Taking a break...")
+        break_timestamp = int(time.time() * 1000)  # 13-digit ms precision
+        send_gesture_classification(1)
+        show_break(break_duration)
 
-print("=== Session Complete ===")
-print("Video play counts:")
-for video, count in play_counts.items():
-    print(f"{os.path.basename(video)}: {count}")
+    print("=== Session Complete ===")
+    print("Video play counts:")
+    for video, count in play_counts.items():
+        print(f"{os.path.basename(video)}: {count}")
 
 
 
-cv2.destroyAllWindows()
+    cv2.destroyAllWindows()

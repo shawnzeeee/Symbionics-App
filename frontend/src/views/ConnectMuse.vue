@@ -51,19 +51,26 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-
+import {fetchDevices} from '../api.js'
 const showDeviceList = ref(false)
 const connecting = ref(false)
 const connected = ref(false)
 const connectStatus = ref('')
 const router = useRouter()
+const museDevices = ref([])
 
-function searchDevices() {
+async function searchDevices() {
   showDeviceList.value = true
   connectStatus.value = ''
   connecting.value = false
   connected.value = false
-}
+  try{
+    const response = await fetchDevices()
+    devices = response.data
+    console.log(devices);
+  }catch (error){
+    console.log('Failed to fetch devices: ', error)
+  }}
 
 function connectToDevice() {
   connectStatus.value = 'Connecting...'
