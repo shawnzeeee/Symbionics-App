@@ -1,0 +1,5 @@
+from services.muselsl_stream_service import MuselslStreamService
+from services.calibration_service import CalibrationService
+
+muselsl_stream_service = MuselslStreamService()
+calibration_service = CalibrationService(muselsl_stream_service)

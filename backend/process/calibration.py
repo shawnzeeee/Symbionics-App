@@ -12,7 +12,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 SHARED_MEMORY_NAME = "Local\\GestureSharedMemory"
 SHARED_MEMORY_SIZE = 256
 shm = mmap.mmap(-1, SHARED_MEMORY_SIZE, SHARED_MEMORY_NAME, access=mmap.ACCESS_WRITE)
-
+session_start = time.time()
 #classifications of hand gestures:
 #Idle           = 0
 #Hand close     = 1
@@ -303,7 +303,6 @@ def calibrate():
     # --- MAIN LOOP ---
     show_instructions()
 
-    session_start = time.time()
     cycle_count = 0
 
     while time.time() - session_start < total_duration:

@@ -102,15 +102,24 @@ def save_data_to_csv():
     return
 
 
-def check_signal(eeg_buffer):
+async def check_signal(websocket, stop_event):
     # eeg_buffer shape: (num_samples, num_channels)
-    eeg_buffer = eeg_buffer.reshape(500,4)
-    signal_quality = []
-    for i in range(eeg_buffer.shape[1]):
-        channel_data = eeg_buffer[:, i]
-        std = channel_data.std()
-        signal_quality.append(std)
-    return {"TP9": signal_quality[0], "AF7": signal_quality[1], "AF8": signal_quality[2], "TP10": signal_quality[3]}
+    global eeg_buffer, eeg_buffer_lock
+    websocket.accept()
+    try:
+        while not stop_event.is_set():
+            with eeg_buffer_lock:
+                input_buffer = eeg_buffer.reshape(500,4)
+            signal_quality = []
+            for i in range(input_buffer.shape[1]):
+                channel_data = input_buffer[:, i]
+                std = channel_data.std()
+                signal_quality.append(std)
+            await websocket.send_json({"TP9": signal_quality[0], "AF7": signal_quality[1], "AF8": signal_quality[2], "TP10": signal_quality[3]})
+            await asyncio.sleep(0.5)
+    except Exception:
+        await websocket.close()
+    return 
 
 def get_eeg_buffer():
     global eeg_buffer
