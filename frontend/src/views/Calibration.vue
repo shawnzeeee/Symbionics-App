@@ -71,6 +71,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { beginPylslStream } from "../api.js";
 
 const step = ref(1);
 const filename = ref("");
@@ -80,8 +81,13 @@ function nextStep() {
   if (step.value < 4) step.value++;
 }
 
-function startCalibration() {
-  router.push({ name: "CheckElectrodes" });
+async function startCalibration() {
+  try {
+    await beginPylslStream(filename.value);
+    router.push({ name: "CheckElectrodes" });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 function saveFile() {
@@ -98,7 +104,7 @@ function goBack() {
   if (step.value > 1) {
     step.value--;
   } else {
-    router.push({ name: "CheckElectrodes" });
+    router.push({ name: "MuseData" });
   }
 }
 

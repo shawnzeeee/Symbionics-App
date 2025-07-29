@@ -4,15 +4,14 @@ from .shared_instances import calibration_service
 
 calibration_router = APIRouter()
 
-@calibration_router.get("/begin-calibration")
-def begin_calibration(file_name: str):
-    return calibration_service.begin_calibration()
+@calibration_router.get("/begin-pylsl-stream")
+def begin_pylsl_stream(file_name: str):
+    return calibration_service.begin_pylsl_stream(file_name)
 
 @calibration_router.websocket("/signal-quality")
 async def check_signal(websocket: WebSocket):
     await websocket.accept()
-    file_name = websocket.query_params.get("file_name")
-    await calibration_service.begin_checking_signal(websocket, file_name)
+    await calibration_service.begin_checking_signal(websocket)
     await websocket.close()
 
 @calibration_router.get("/end-stream")
