@@ -13,11 +13,12 @@
 
     <!-- Device List -->
     <div v-if="showDeviceList" class="w-full max-w-2xl bg-[#528aa3] text-white rounded-md p-4">
-      <div class="flex justify-between font-bold text-lg mb-2">
-        <span>Muse device 1</span>
-        <button 
+      <div v-if="museDevices.length === 0" class="text-center py-4">No devices found.</div>
+      <div v-for="(device, idx) in museDevices" :key="device.address || idx" class="flex justify-between font-bold text-lg mb-2 items-center">
+        <span>{{ device.name}}</span>
+        <button
           :disabled="connecting || connected"
-          @click="connectToDevice" 
+          @click="connectToDevice(device.address)"
           class="underline hover:text-gray-100 transition"
           :class="{ 'opacity-50': connecting || connected }"
         >
@@ -40,7 +41,7 @@
     <div class="absolute bottom-6 right-6">
       <button 
         @click="goNext"
-        class="bg-[#19596e] text-white px-6 py-3 rounded-lg transition"
+        class="bg-[#19596e] text-white px-6 py-3 rounded-lg hover:bg-gray-400 transition"
       >
         Next
       </button>
@@ -51,13 +52,13 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import {fetchDevices} from '../api.js'
-const showDeviceList = ref(false)
+import {fetchDevices, connectMuse} from '../api.js'
+const showDeviceList = ref(true)
 const connecting = ref(false)
 const connected = ref(false)
 const connectStatus = ref('')
 const router = useRouter()
-const museDevices = ref([])
+const museDevices = ref([{"name":"Muse 1234","address": "00:55:DA:B0:1E:78"}])
 
 async function searchDevices() {
   showDeviceList.value = true
@@ -66,20 +67,22 @@ async function searchDevices() {
   connected.value = false
   try{
     const response = await fetchDevices()
-    devices = response.data
-    console.log(devices);
+    museDevices.value = response.data
   }catch (error){
     console.log('Failed to fetch devices: ', error)
   }}
 
-function connectToDevice() {
+async function connectToDevice(address) {
   connectStatus.value = 'Connecting...'
   connecting.value = true
-  setTimeout(() => {
+  try{
+    response = await connectMuse(address)
     connectStatus.value = 'Connected!'
     connecting.value = false
     connected.value = true
-  }, 2000)
+  }catch(error){
+    console.log(error)
+  }
 }
 
 function goBack() {
@@ -87,7 +90,9 @@ function goBack() {
 }
 
 function goNext() {
+  //if (connected.value == true){
     router.push({ name: 'MuseData' })
+  //}
 }
 </script>
 

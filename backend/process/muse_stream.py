@@ -77,17 +77,18 @@ timestamp = None
 classifcation = 0
 classification_lock = threading.Lock()
 
-def begin_streaming_data(stop_event, record_data_event):
+def begin_streaming_data(writer, start_event, stop_event, record_data_event):
     global eeg_buffer, sample, timestamp
     buffer_size = 4 * 250 *2
     eeg_buffer = np.zeros(buffer_size, dtype=np.float32)
     try:
         wait_for_stream(timeout=10)
         inlet = connect_to_eeg_stream()
+        start_event.set()
         while not stop_event.is_set():
             sample, timestamp = inlet.pull_sample()
             if record_data_event.is_set():
-                rows.concat([sample[0], sample[1], sample[2], sample[3], send_code])
+                writer.writerow([sample[0], sample[1], sample[2], sample[3], 0])
             with eeg_buffer_lock:
                 eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
                 eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)

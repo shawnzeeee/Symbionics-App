@@ -1,13 +1,18 @@
 <template>
   <div class="bg-gray-100 text-[#19596e] min-h-screen font-sans relative flex flex-col items-center justify-center px-4">
-    <!-- STEP 1: Start Calibration -->
+
+      <!-- STEP 1: Enter File Name -->
     <div v-if="step === 1" class="flex flex-col items-center">
       <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
+      <div class="bg-[#528aa3] text-white p-6 rounded-md text-center w-72">
+        <label class="block mb-4">Enter file name for EEG data:</label>
+        <input v-model="filename" type="text" placeholder="e.g., trial1.csv"
+               class="w-full text-[#19596e] px-3 py-2 rounded" />
+      </div>
       <button 
-        @click="nextStep" 
-        class="bg-[#528aa3] text-white px-10 py-6 rounded-md text-lg text-center"
-      >
-        Press to start<br>3 min calibration video
+        @click="startCalibration" 
+        class="mt-6 bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition">
+        Start Calibration
       </button>
     </div>
 
@@ -24,26 +29,12 @@
       </button>
     </div>
 
-    <!-- STEP 3: Enter File Name -->
-    <div v-if="step === 3" class="flex flex-col items-center">
-      <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
-      <div class="bg-[#528aa3] text-white p-6 rounded-md text-center w-72">
-        <label class="block mb-4">Enter file name for EEG data:</label>
-        <input v-model="filename" type="text" placeholder="e.g., trial1.csv"
-               class="w-full text-[#19596e] px-3 py-2 rounded" />
-      </div>
-      <button 
-        @click="saveFile" 
-        class="mt-6 bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition">
-        Save
-      </button>
-    </div>
 
     <!-- STEP 4: Confirmation -->
-    <div v-if="step === 4" class="flex flex-col items-center">
+    <div v-if="step === 3" class="flex flex-col items-center">
       <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
       <div class="bg-[#528aa3] text-white px-12 py-6 rounded-md text-xl">
-        Data file saved!
+        Data saved!
       </div>
     </div>
 
@@ -88,7 +79,7 @@ function saveFile() {
   }
   // Placeholder save logic — replace with actual file save
   console.log('Saving EEG data as:', filename.value)
-  step.value = 4
+  step.value = 2
 }
 
 function goBack() {
