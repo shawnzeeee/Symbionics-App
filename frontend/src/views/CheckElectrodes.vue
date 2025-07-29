@@ -57,24 +57,6 @@ const router = useRouter();
 
 let socket = null;
 
-onMounted(() => {
-  // Connect to the check signal websocket
-  socket = createSignalQualitySocket((data) => {
-    // Example: update electrodes based on received signal quality
-    // Assuming data.signal is an array of booleans for each electrode
-    if (data.signal && Array.isArray(data.signal)) {
-      electrodes.value = data.signal;
-    }
-  });
-
-  // (Optional) Demo animation for fallback/testing
-  // electrodes.value.forEach((_, idx) => {
-  //   setTimeout(() => {
-  //     electrodes.value[idx] = true;
-  //   }, idx * 700);
-  // });
-});
-
 onBeforeUnmount(() => {
   if (socket) {
     socket.close();
@@ -87,6 +69,21 @@ onMounted(() => {
       electrodes.value[idx] = true;
     }, idx * 700);
   });
+
+  socket = createSignalQualitySocket((data) => {
+    // Example: update electrodes based on received signal quality
+    // Assuming data.signal is an array of booleans for each electrode
+    if (data.signal && Array.isArray(data.signal)) {
+      electrodes.value = data.signal;
+    }
+  }, "test");
+
+  // (Optional) Demo animation for fallback/testing
+  // electrodes.value.forEach((_, idx) => {
+  //   setTimeout(() => {
+  //     electrodes.value[idx] = true;
+  //   }, idx * 700);
+  // });
 });
 
 function goBack() {

@@ -28,7 +28,6 @@ def start_muse_stream(MAC_ADDRESS, start_event, stop_event):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         stream(MAC_ADDRESS, start_event, stop_event)
-        print("Connected")
     finally:
         asyncio.set_event_loop(None)
     
@@ -105,7 +104,6 @@ def save_data_to_csv():
 async def check_signal(websocket, stop_event):
     # eeg_buffer shape: (num_samples, num_channels)
     global eeg_buffer, eeg_buffer_lock
-    websocket.accept()
     try:
         while not stop_event.is_set():
             with eeg_buffer_lock:
@@ -118,7 +116,7 @@ async def check_signal(websocket, stop_event):
             await websocket.send_json({"TP9": signal_quality[0], "AF7": signal_quality[1], "AF8": signal_quality[2], "TP10": signal_quality[3]})
             await asyncio.sleep(0.5)
     except Exception:
-        await websocket.close()
+        print("There has been an error in check_signal")
     return 
 
 def get_eeg_buffer():

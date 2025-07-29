@@ -44,7 +44,10 @@ class CalibrationService:
         muselsl_thread = self.stream_service.muselsl_thread
         muselsl_start_event = self.stream_service.muselsl_start_event
         
-
+        if muselsl_thread == None:
+            print("Muselsl not running")
+            return {"data": "Muselsl not running"}
+        
         if muselsl_thread.is_alive() and muselsl_start_event.is_set():
             with open(file_path, mode='w', newline='') as csvfile:
                 writer = csv.writer(csvfile)

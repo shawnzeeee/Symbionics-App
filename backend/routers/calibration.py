@@ -10,4 +10,7 @@ def begin_calibration(file_name: str):
 
 @calibration_router.websocket("/signal-quality")
 async def check_signal(websocket: WebSocket):
-    await calibration_service.begin_checking_signal(websocket)
+    await websocket.accept()
+    file_name = websocket.query_params.get("file_name")
+    await calibration_service.begin_checking_signal(websocket, file_name)
+    await websocket.close()
