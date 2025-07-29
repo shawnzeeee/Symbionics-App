@@ -88,13 +88,16 @@ def begin_streaming_data(writer, start_event, stop_event, record_data_event):
             sample, timestamp = inlet.pull_sample()
             if record_data_event.is_set():
                 writer.writerow([sample[0], sample[1], sample[2], sample[3], 0])
-            with eeg_buffer_lock:
-                eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
-                eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)
+            #with eeg_buffer_lock:
+            eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
+            eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)
+        print("Ending pylsl_stream")
     except KeyboardInterrupt:
         print("\n[INFO] Stopping...")
     except:
         print("\n Something went wrong creating EEG buffer")
+
+    print("Ending pylsl_stream")
     return "Stream Ended"
 
 def save_data_to_csv():
@@ -102,22 +105,29 @@ def save_data_to_csv():
 
 
 async def check_signal(websocket, stop_event):
-    # eeg_buffer shape: (num_samples, num_channels)
     global eeg_buffer, eeg_buffer_lock
     try:
         while not stop_event.is_set():
-            with eeg_buffer_lock:
-                input_buffer = eeg_buffer.reshape(500,4)
+            # Wait until eeg_buffer is ready and has enough data
+            if eeg_buffer is None or eeg_buffer.size < 2000:
+                await asyncio.sleep(0.1)
+                continue
+            input_buffer = eeg_buffer.reshape(500, 4)
             signal_quality = []
             for i in range(input_buffer.shape[1]):
                 channel_data = input_buffer[:, i]
                 std = channel_data.std()
                 signal_quality.append(std)
-            await websocket.send_json({"TP9": signal_quality[0], "AF7": signal_quality[1], "AF8": signal_quality[2], "TP10": signal_quality[3]})
+            await websocket.send_json({
+                "TP9": float(signal_quality[0]),
+                "AF7": float(signal_quality[1]),
+                "AF8": float(signal_quality[2]),
+                "TP10": float(signal_quality[3])
+            })
             await asyncio.sleep(0.5)
-    except Exception:
-        print("There has been an error in check_signal")
-    return 
+    except Exception as e:
+        print(f'There has been an error in check_signal: {e}')
+    return
 
 def get_eeg_buffer():
     global eeg_buffer

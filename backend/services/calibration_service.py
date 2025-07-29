@@ -43,7 +43,7 @@ class CalibrationService:
 
         muselsl_thread = self.stream_service.muselsl_thread
         muselsl_start_event = self.stream_service.muselsl_start_event
-        
+        muselsl_stop_event = self.stream_service.muselsl_stop_event
         if muselsl_thread == None:
             print("Muselsl not running")
             return {"data": "Muselsl not running"}
@@ -60,6 +60,24 @@ class CalibrationService:
 
                 while not self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
                     time.sleep(0.1)
-                
-                self.check_signal_thread = threading.Thread(target=check_signal, args=(websocket, self.pylsl_stop_event))
+                # try:
+                #     response = await check_signal(websocket, muselsl_stop_event)
+                # except Exception:
+                #     print("Error checking signal quality")
+                #self.check_signal_thread = threading.Thread(target=check_signal, args=(websocket, muselsl_stop_event))
+                await check_signal(websocket, self.pylsl_stop_event)
         return {"data": "Succesfully calibrated"}
+    
+    def disconnect_muse(self):
+        muselsl_thread = self.stream_service.muselsl_thread
+        muselsl_start_event = self.stream_service.muselsl_start_event
+        muselsl_stop_event = self.stream_service.muselsl_stop_event
+
+        self.pylsl_stop_event.set()
+        if self.pylsl_thread is not None:
+            self.pylsl_thread.join()  # Wait for the thread to terminate
+        muselsl_stop_event.set()
+        if muselsl_thread is not None:
+            muselsl_thread.join()
+        print("Pylsl and muselsl terminated")
+        return {"data": "Pylsl and muselsl terminated"}

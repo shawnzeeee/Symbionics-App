@@ -2,6 +2,15 @@
   <div
     class="bg-gray-100 text-white min-h-screen font-sans flex flex-col items-center px-4 relative"
   >
+    <!-- Disconnect Button -->
+    <div class="absolute top-6 right-6">
+      <button
+        @click="disconnect"
+        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+      >
+        Disconnect
+      </button>
+    </div>
     <!-- Title -->
     <h1
       class="text-2xl md:text-3xl font-medium text-center text-[#19596e] mt-12"
@@ -51,17 +60,12 @@
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { createSignalQualitySocket } from "../ws.js";
+import { disconnectMuse } from "../api.js";
 
 const electrodes = ref([false, false, false, false]);
 const router = useRouter();
 
 let socket = null;
-
-onBeforeUnmount(() => {
-  if (socket) {
-    socket.close();
-  }
-});
 
 onMounted(() => {
   electrodes.value.forEach((_, idx) => {
@@ -73,9 +77,10 @@ onMounted(() => {
   socket = createSignalQualitySocket((data) => {
     // Example: update electrodes based on received signal quality
     // Assuming data.signal is an array of booleans for each electrode
-    if (data.signal && Array.isArray(data.signal)) {
-      electrodes.value = data.signal;
-    }
+    // if (data.signal && Array.isArray(data.signal)) {
+    //   electrodes.value = data.signal;
+    // }
+    console.log(data);
   }, "test");
 
   // (Optional) Demo animation for fallback/testing
@@ -86,8 +91,17 @@ onMounted(() => {
   // });
 });
 
+async function disconnect() {
+  try {
+    const response = await disconnectMuse();
+    console.log(response);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 function goBack() {
-  router.push({ name: "ConnectMuse" });
+  router.push({ name: "Home" });
 }
 
 function goNext() {
