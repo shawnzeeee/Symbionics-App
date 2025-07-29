@@ -29,7 +29,7 @@
       >
         <span>Electrode {{ idx + 1 }}</span>
         <div
-          :class="['w-16 h-6 rounded', active ? 'bg-green-400' : 'bg-gray-300']"
+          :class="['w-16 h-6 rounded', active ? 'bg-green-400' : 'bg-red-400']"
         ></div>
       </div>
     </div>
@@ -57,38 +57,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { createSignalQualitySocket } from "../ws.js";
 import { disconnectMuse } from "../api.js";
 
+// Each electrode: true = green, false = red
 const electrodes = ref([false, false, false, false]);
 const router = useRouter();
 
 let socket = null;
 
 onMounted(() => {
-  electrodes.value.forEach((_, idx) => {
-    setTimeout(() => {
-      electrodes.value[idx] = true;
-    }, idx * 700);
-  });
-
+  // Only update from signal, no demo animation
   socket = createSignalQualitySocket((data) => {
-    // Example: update electrodes based on received signal quality
-    // Assuming data.signal is an array of booleans for each electrode
-    // if (data.signal && Array.isArray(data.signal)) {
-    //   electrodes.value = data.signal;
-    // }
-    console.log(data);
+    // Expecting data: { TP9, AF7, AF8, TP10 }
+    if (
+      data &&
+      typeof data.TP9 === "number" &&
+      typeof data.AF7 === "number" &&
+      typeof data.AF8 === "number" &&
+      typeof data.TP10 === "number"
+    ) {
+      // Set green if < 100, red if >= 100
+      electrodes.value = [
+        data.TP9 < 100,
+        data.AF7 < 100,
+        data.AF8 < 100,
+        data.TP10 < 100,
+      ];
+    }
   }, "test");
-
-  // (Optional) Demo animation for fallback/testing
-  // electrodes.value.forEach((_, idx) => {
-  //   setTimeout(() => {
-  //     electrodes.value[idx] = true;
-  //   }, idx * 700);
-  // });
 });
 
 async function disconnect() {
