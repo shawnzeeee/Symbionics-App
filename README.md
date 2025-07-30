@@ -1,5 +1,7 @@
 # Symbionics Frontend
 
+Symbionics is an application designed to help users connect to a Muse EEG device and configure or calibrate it for use with a robotic glove. The primary goal of this project is to assist individuals with hand paralysis by enabling them to control a robotic glove for improved gripping ability. The app provides an intuitive interface for device connection, signal quality checking, and calibration routines, making advanced assistive technology accessible to those in need.
+
 > This is the frontend for Symbionics, a BCI (Brain-Computer Interface) company. This project uses Vue 3, Vite, Tailwind CSS, and Pinia.
 
 ## Prerequisites
