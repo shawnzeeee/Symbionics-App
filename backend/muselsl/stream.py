@@ -248,9 +248,12 @@ def stream(
                     muse.stop()
                     muse.disconnect()
                     break
-            muse.stop()
-            muse.disconnect()
-            print('Disconnected.')
+            if stop_event.is_set():
+                muse.stop()
+                muse.disconnect()
+            stop_event.set()
+            print('Disconnected.', stop_event)
+            return
 
     # For bluemuse backend, we don't need to create LSL streams directly, since these are handled in BlueMuse itself.
     else:

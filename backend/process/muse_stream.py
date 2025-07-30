@@ -2,12 +2,16 @@ import time
 from pylsl import StreamInlet, resolve_streams
 import subprocess
 import numpy as np
-from muse_validation import checkSignal
+from muse_validation import check_signal
 from muselsl.stream import stream
 from muselsl.stream import list_muses
 import threading
-
+import mmap
 stream_process = None
+
+SHARED_MEMORY_NAME = "Local\\GestureSharedMemory"
+SHARED_MEMORY_SIZE = 256
+shm = mmap.mmap(-1, SHARED_MEMORY_SIZE, SHARED_MEMORY_NAME, access=mmap.ACCESS_WRITE)
 
 import asyncio
 def get_devices_list():
@@ -28,7 +32,6 @@ def start_muse_stream(MAC_ADDRESS, start_event, stop_event):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         stream(MAC_ADDRESS, start_event, stop_event)
-        print("Connected")
     finally:
         asyncio.set_event_loop(None)
     
@@ -71,35 +74,64 @@ def connect_to_eeg_stream():
 
 eeg_buffer = None
 eeg_buffer_lock = threading.Lock()
+sample = None
+timestamp = None
 
-def update_eeg_buffer(stop_event):
-    global eeg_buffer
+classifcation = 0
+classification_lock = threading.Lock()
+
+def begin_streaming_data(writer, start_event, stop_event, record_data_event):
+    global eeg_buffer, sample, timestamp
     buffer_size = 4 * 250 *2
     eeg_buffer = np.zeros(buffer_size, dtype=np.float32)
     try:
         wait_for_stream(timeout=10)
         inlet = connect_to_eeg_stream()
+        start_event.set()
         while not stop_event.is_set():
             sample, timestamp = inlet.pull_sample()
-            with eeg_buffer_lock:
-                eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
-                eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)
+            if record_data_event.is_set():
+                writer.writerow([sample[0], sample[1], sample[2], sample[3], 0])
+            #with eeg_buffer_lock:
+            eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
+            eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)
+        print("Ending pylsl_stream")
     except KeyboardInterrupt:
         print("\n[INFO] Stopping...")
     except:
         print("\n Something went wrong creating EEG buffer")
+
+    print("Ending pylsl_stream")
     return "Stream Ended"
 
+def save_data_to_csv():
+    return
 
-def check_signal(eeg_buffer):
-    # eeg_buffer shape: (num_samples, num_channels)
-    eeg_buffer = eeg_buffer.reshape(500,4)
-    signal_quality = []
-    for i in range(eeg_buffer.shape[1]):
-        channel_data = eeg_buffer[:, i]
-        std = channel_data.std()
-        signal_quality.append(std)
-    return {"TP9": signal_quality[0], "AF7": signal_quality[1], "AF8": signal_quality[2], "TP10": signal_quality[3]}
+
+async def check_signal(websocket, stop_event):
+    global eeg_buffer, eeg_buffer_lock
+    try:
+        while not stop_event.is_set():
+            # Wait until eeg_buffer is ready and has enough data
+            if eeg_buffer is None or eeg_buffer.size < 2000:
+                await asyncio.sleep(0.1)
+                continue
+            input_buffer = eeg_buffer.reshape(500, 4)
+            signal_quality = []
+            for i in range(input_buffer.shape[1]):
+                channel_data = input_buffer[:, i]
+                std = channel_data.std()
+                signal_quality.append(std)
+            await websocket.send_json({
+                "TP9": float(signal_quality[0]),
+                "AF7": float(signal_quality[1]),
+                "AF8": float(signal_quality[2]),
+                "TP10": float(signal_quality[3])
+            })
+            await asyncio.sleep(0.5)
+    except Exception as e:
+        print(f'There has been an error in check_signal: {e}')
+    return
 
 def get_eeg_buffer():
     global eeg_buffer
