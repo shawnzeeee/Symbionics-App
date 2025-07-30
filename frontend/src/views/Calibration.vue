@@ -15,7 +15,7 @@
         />
       </div>
       <button
-        @click="startCalibration"
+        @click="beginDataCollection"
         class="mt-6 bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
       >
         Start Calibration
@@ -81,7 +81,7 @@ function nextStep() {
   if (step.value < 4) step.value++;
 }
 
-async function startCalibration() {
+async function beginDataCollection() {
   try {
     await beginPylslStream(filename.value);
     router.push({ name: "CheckElectrodes" });

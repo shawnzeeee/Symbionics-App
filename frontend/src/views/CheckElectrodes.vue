@@ -47,10 +47,10 @@
     <!-- Next Button -->
     <div class="absolute bottom-6 right-6">
       <button
-        @click="goNext"
+        @click="beginDataRecording"
         class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
       >
-        Next
+        Calibration
       </button>
     </div>
   </div>
@@ -60,7 +60,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { createSignalQualitySocket } from "../ws.js";
-import { disconnectMuse } from "../api.js";
+import { beginCalibration, disconnectMuse } from "../api.js";
 
 // Each electrode: true = green, false = red
 const electrodes = ref([false, false, false, false]);
@@ -70,6 +70,7 @@ let socket = null;
 
 onMounted(() => {
   // Only update from signal, no demo animation
+  socket.close();
   socket = createSignalQualitySocket((data) => {
     // Expecting data: { TP9, AF7, AF8, TP10 }
     if (
@@ -88,6 +89,12 @@ onMounted(() => {
       ];
     }
   }, "test");
+  if (socket) {
+    socket.onclose = (event) => {
+      console.log("WebSocket closed:", event);
+      electrodes.value = [false, false, false, false];
+    };
+  }
 });
 
 async function disconnect() {
@@ -103,9 +110,13 @@ function goBack() {
   router.push({ name: "Home" });
 }
 
-function goNext() {
+async function beginDataRecording() {
   //router.push({ path: 'Calibration' })
   //Start calibration
+  try {
+    const response = await beginCalibration();
+    console.log(response);
+  } catch (error) {}
 }
 </script>
 

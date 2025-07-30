@@ -12,7 +12,6 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 SHARED_MEMORY_NAME = "Local\\GestureSharedMemory"
 SHARED_MEMORY_SIZE = 256
 shm = mmap.mmap(-1, SHARED_MEMORY_SIZE, SHARED_MEMORY_NAME, access=mmap.ACCESS_WRITE)
-session_start = time.time()
 #classifications of hand gestures:
 #Idle           = 0
 #Hand close     = 1
@@ -24,7 +23,7 @@ session_start = time.time()
 
 # --- CONFIG ---
 video_list = [ 
-         os.path.join(script_dir,"../../HandGestureDataCollection/15minVideo/GestureVideos/Handclose2.mp4"),
+         os.path.join(script_dir,"../Videos/Handclose2.mp4"),
          #os.path.join(script_dir,"GestureVideos/Handopen2.mp4"), 
          #os.path.join(script_dir,"../../HandGestureDataCollection/15minVideo/GestureVideos/Okclose2.mp4"),
          #os.path.join(script_dir,"GestureVideos/Okopen2.mp4"), 
@@ -48,8 +47,8 @@ gesture_labels = {
 
 cycle_duration = 8   
 break_duration = 12    
-total_duration = 60 * 3
-
+#total_duration = 60 * 3
+total_duration = 30
 
 
 # Shared memory configuration
@@ -66,7 +65,7 @@ def get_least_played_video():
 
 previous_class = 0
 
-def play_video_then_countdown(path, gesture_index):
+def play_video_then_countdown(session_start, path, gesture_index):
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         print(f"Cannot open: {path}")
@@ -208,7 +207,7 @@ def play_video_then_countdown(path, gesture_index):
 
     # Do NOT destroy the window here — reused across calls
 
-def play_balanced_videos_for(duration):
+def play_balanced_videos_for(session_start, duration):
     start_time = time.time()
     while time.time() - start_time < duration:
         video_path = get_least_played_video()
@@ -259,7 +258,7 @@ def draw_progress_bar(frame, progress, max_width=200, height=20):
     fill_width = int(progress * max_width)
     cv2.rectangle(frame, (x_start, y_start), (x_start + fill_width, y_start + height), (0, 128, 0), -1)
 
-def show_instructions():
+def show_instructions(record_data_event):
     frame = np.full((800, 1000, 3), 245, dtype=np.uint8)  # soft gray background
     font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -289,6 +288,7 @@ def show_instructions():
     while True:
         key = cv2.waitKey(0) & 0xFF
         if key == ord('\r') or key == 13:  # Enter key on Windows
+            record_data_event.set()
             break
         elif key == ord('q'):
             exit(0)
@@ -299,14 +299,15 @@ def send_gesture_classification(gesture_code):
     print(f"[SHM] Sent gesture classification: {gesture_code}")
 
 
-def calibrate():
+def calibrate(record_data_event):
     # --- MAIN LOOP ---
-    show_instructions()
+    show_instructions(record_data_event)
+    session_start = time.time()
 
     cycle_count = 0
 
     while time.time() - session_start < total_duration:
-        play_balanced_videos_for(cycle_duration)
+        play_balanced_videos_for(session_start, cycle_duration)
         if (time.time() - session_start > total_duration):
             break
         print("[BREAK] Taking a break...")

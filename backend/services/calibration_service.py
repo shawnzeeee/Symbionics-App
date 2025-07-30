@@ -29,7 +29,7 @@ class CalibrationService:
         muselsl_start_event = self.stream_service.muselsl_start_event
         if muselsl_thread == None:
             print("Muselsl not running")
-            raise Exception("Muselsl not running")
+            return {"data": "Muselsl not running"}
         
         if muselsl_thread.is_alive() and muselsl_start_event.is_set():
             with open(file_path, mode='w', newline='') as csvfile:
@@ -45,16 +45,16 @@ class CalibrationService:
                     time.sleep(0.1)
             return {"data": "Succesfully start pylsl stream"}
         
-        raise Exception("There was an error connectiong to muselsl")
+        return {"data": "There was error connecting to muselsl stream"}
     
     def begin_calibration(self):
         muselsl_thread = self.stream_service.muselsl_thread
         muselsl_start_event = self.stream_service.muselsl_start_event
-        if muselsl_thread.is_alive() and muselsl_start_event.is_set() and self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
-            self.record_data_event.clear()       
-            self.calibration_thread = threading.Thread(target=calibrate, args=(self.record_data_event))
-            self.calibration_thread.start()
-            self.calibration_thread.join()
+        if muselsl_thread.is_alive() and muselsl_start_event.is_set() and self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():       
+            # self.calibration_thread = threading.Thread(target=calibrate, args=(self.record_data_event))
+            # self.calibration_thread.start()
+            # self.calibration_thread.join()
+            calibrate(self.record_data_event)
 
         self.disconnect_muse()
 
@@ -62,7 +62,7 @@ class CalibrationService:
         # Build the path in the SavedData folder
         if self.pylsl_thread == None:
             print("No pylsl thread")
-            raise Exception("No pylsl thread")
+            return {"data": "No pylsl thread"}
 
         while not self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
             time.sleep(0.1)

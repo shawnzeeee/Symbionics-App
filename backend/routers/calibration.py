@@ -8,6 +8,10 @@ calibration_router = APIRouter()
 def begin_pylsl_stream(file_name: str):
     return calibration_service.begin_pylsl_stream(file_name)
 
+@calibration_router.get("/begin-calibration")
+def begin_calibration():
+    return calibration_service.begin_calibration()
+
 @calibration_router.websocket("/signal-quality")
 async def check_signal(websocket: WebSocket):
     await websocket.accept()

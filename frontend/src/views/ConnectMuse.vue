@@ -91,6 +91,7 @@ async function connectToDevice(address) {
   connecting.value = true;
   try {
     const response = await connectMuse(address);
+    console.log(response);
     connectStatus.value = "Connected!";
     connecting.value = false;
     connected.value = true;
