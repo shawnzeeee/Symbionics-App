@@ -31,17 +31,14 @@ class CalibrationService:
             return {"data": "Muselsl not running"}
         
         if muselsl_thread.is_alive() and muselsl_start_event.is_set():
-            with open(file_path, mode='w', newline='') as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerow(["Channel 1", "Channel 2", "Channel 3", "Channel 4", "Classification"])
-                self.pylsl_start_event.clear()
-                self.pylsl_stop_event.clear()
-                self.record_data_event.clear()
-                self.pylsl_thread = threading.Thread(target=begin_streaming_data, args=(writer,self.pylsl_start_event, self.pylsl_stop_event, self.record_data_event))
-                self.pylsl_thread.start()
+            self.pylsl_start_event.clear()
+            self.pylsl_stop_event.clear()
+            self.record_data_event.clear()
+            self.pylsl_thread = threading.Thread(target=begin_streaming_data, args=(file_path,self.pylsl_start_event, self.pylsl_stop_event, self.record_data_event))
+            self.pylsl_thread.start()
 
-                while not self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
-                    time.sleep(0.1)
+            while not self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
+                time.sleep(0.1)
             return {"data": "Succesfully start pylsl stream"}
         
         return {"data": "There was error connecting to muselsl stream"}
@@ -50,9 +47,6 @@ class CalibrationService:
         muselsl_thread = self.stream_service.muselsl_thread
         muselsl_start_event = self.stream_service.muselsl_start_event
         if muselsl_thread.is_alive() and muselsl_start_event.is_set() and self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():       
-            # self.calibration_thread = threading.Thread(target=calibrate, args=(self.record_data_event))
-            # self.calibration_thread.start()
-            # self.calibration_thread.join()
             calibrate(self.record_data_event)
 
         self.disconnect_muse()
