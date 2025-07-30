@@ -70,7 +70,6 @@ let socket = null;
 
 onMounted(() => {
   // Only update from signal, no demo animation
-  socket.close();
   socket = createSignalQualitySocket((data) => {
     // Expecting data: { TP9, AF7, AF8, TP10 }
     if (
@@ -88,6 +87,7 @@ onMounted(() => {
         data.TP10 < 100,
       ];
     }
+
   }, "test");
   if (socket) {
     socket.onclose = (event) => {
