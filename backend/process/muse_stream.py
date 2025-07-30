@@ -6,8 +6,12 @@ from muse_validation import check_signal
 from muselsl.stream import stream
 from muselsl.stream import list_muses
 import threading
-
+import mmap
 stream_process = None
+
+SHARED_MEMORY_NAME = "Local\\GestureSharedMemory"
+SHARED_MEMORY_SIZE = 256
+shm = mmap.mmap(-1, SHARED_MEMORY_SIZE, SHARED_MEMORY_NAME, access=mmap.ACCESS_WRITE)
 
 import asyncio
 def get_devices_list():

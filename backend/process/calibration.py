@@ -6,29 +6,16 @@ import os
 import struct
 import math
 import mmap
-
+import threading
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 SHARED_MEMORY_NAME = "Local\\GestureSharedMemory"
 SHARED_MEMORY_SIZE = 256
 shm = mmap.mmap(-1, SHARED_MEMORY_SIZE, SHARED_MEMORY_NAME, access=mmap.ACCESS_WRITE)
-#classifications of hand gestures:
-#Idle           = 0
-#Hand close     = 1
-#Hand open      = 2
-#Ok close       = 3
-#Ok open        = 4
-#Prong close    = 5
-#Prong open     = 6
 
 # --- CONFIG ---
 video_list = [ 
          os.path.join(script_dir,"../Videos/Handclose2.mp4"),
-         #os.path.join(script_dir,"GestureVideos/Handopen2.mp4"), 
-         #os.path.join(script_dir,"../../HandGestureDataCollection/15minVideo/GestureVideos/Okclose2.mp4"),
-         #os.path.join(script_dir,"GestureVideos/Okopen2.mp4"), 
-         #os.path.join(script_dir,"../../HandGestureDataCollection/15minVideo/GestureVideos/Prongclose2.mp4"),
-         #os.path.join(script_dir,"GestureVideos/Prongopen2.mp4"), 
 ]
 
 #for controlled randomness
@@ -39,21 +26,17 @@ play_order = []
 gesture_labels = {
    # "Handopen2.mp4": "Open Hand",
     "Handclose2.mp4": "Close Hand",
-   # "Okopen2.mp4": "OK Sign (Open)",
-   # "Okclose2.mp4": "OK Sign (Close)",
-   # "Prongopen2.mp4": "Prong Gesture (Open)",
-   # "Prongclose2.mp4": "Prong Gesture (Close)",
 }
 
 cycle_duration = 8   
 break_duration = 12    
 #total_duration = 60 * 3
-total_duration = 30
+total_duration = 10
+cycle_count = 2
+count = 0
 
-
-# Shared memory configuration
-SHARED_MEMORY_NAME = "Local\\GestureSharedMemory"
-SHARED_MEMORY_SIZE = 256
+gesture_code = 0
+gesture_code_lock = threading.Lock()
 
 # --- HELPER FUNCTIONS ---
 def get_least_played_video():
@@ -65,7 +48,7 @@ def get_least_played_video():
 
 previous_class = 0
 
-def play_video_then_countdown(session_start, path, gesture_index):
+def play_video_then_countdown(path, gesture_index):
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         print(f"Cannot open: {path}")
@@ -111,9 +94,9 @@ def play_video_then_countdown(session_start, path, gesture_index):
         cv2.putText(resized_frame, label, (text_x, text_y), font,
                     font_scale, (0, 0, 0), thickness)
         
-        # Calculate progress bar based on session time
-        elapsed = time.time() - session_start
-        progress = min(elapsed / total_duration, 1.0)
+        # Calculate progress bar based on cycle count
+        global count, cycle_count
+        progress = min(count / cycle_count, 1.0) if cycle_count else 0
         draw_progress_bar(resized_frame, progress)
         
         cv2.imshow("Display", resized_frame)
@@ -169,8 +152,8 @@ def play_video_then_countdown(session_start, path, gesture_index):
         cv2.rectangle(overlay, top_left, bottom_right, (0, 0, 0), 2)
         cv2.putText(overlay, countdown_text, (text_x, text_y+10), font, font_scale_countdown, (0, 0, 0), thickness_countdown)
         
-        elapsed = time.time() - session_start
-        progress = min(elapsed / total_duration, 1.0)
+        # Progress bar for overlay
+        progress = min(count / cycle_count, 1.0) if cycle_count else 0
         draw_progress_bar(overlay, progress)
 
         cv2.imshow("Display", overlay)
@@ -197,8 +180,7 @@ def play_video_then_countdown(session_start, path, gesture_index):
             exit(0)
 
     # --- Hold last frame for 2 seconds ---
-    elapsed = time.time() - session_start
-    progress = min(elapsed / total_duration, 1.0)
+    progress = min(count / cycle_count, 1.0) if cycle_count else 0
     draw_progress_bar(last_frame, progress)
     
     cv2.imshow("Display", last_frame)
@@ -207,7 +189,7 @@ def play_video_then_countdown(session_start, path, gesture_index):
 
     # Do NOT destroy the window here — reused across calls
 
-def play_balanced_videos_for(session_start, duration):
+def play_balanced_videos_for(duration):
     start_time = time.time()
     while time.time() - start_time < duration:
         video_path = get_least_played_video()
@@ -289,6 +271,7 @@ def show_instructions(record_data_event):
         key = cv2.waitKey(0) & 0xFF
         if key == ord('\r') or key == 13:  # Enter key on Windows
             record_data_event.set()
+            print(record_data_event)
             break
         elif key == ord('q'):
             exit(0)
@@ -298,28 +281,26 @@ def send_gesture_classification(gesture_code):
     shm.write(struct.pack('i', gesture_code))
     print(f"[SHM] Sent gesture classification: {gesture_code}")
 
-
 def calibrate(record_data_event):
     # --- MAIN LOOP ---
     show_instructions(record_data_event)
+
+    global session_start, cycle_count, count
     session_start = time.time()
 
-    cycle_count = 0
-
-    while time.time() - session_start < total_duration:
-        play_balanced_videos_for(session_start, cycle_duration)
-        if (time.time() - session_start > total_duration):
-            break
+    # while time.time() - session_start < total_duration:
+    while count < cycle_count:
+        play_balanced_videos_for(cycle_duration)
+        # if (time.time() - session_start > total_duration):
+        #     break
         print("[BREAK] Taking a break...")
         break_timestamp = int(time.time() * 1000)  # 13-digit ms precision
         send_gesture_classification(1)
         show_break(break_duration)
-
+        count += 1
     print("=== Session Complete ===")
     print("Video play counts:")
     for video, count in play_counts.items():
         print(f"{os.path.basename(video)}: {count}")
-
-
 
     cv2.destroyAllWindows()
