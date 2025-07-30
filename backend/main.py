@@ -20,5 +20,3 @@ app.include_router(device_router, prefix="/api")
 app.include_router(stream_router, prefix="/api")
 app.include_router(calibration_router, prefix="/api")
 app.include_router(file_router, prefix="/api")
-
-

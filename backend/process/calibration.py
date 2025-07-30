@@ -245,15 +245,15 @@ def show_instructions(record_data_event):
     font = cv2.FONT_HERSHEY_SIMPLEX
 
     instructions = [
-        "Welcome to the Hand Gesture Practice Session!",
+        "Welcome to the Symbionics Calibration Video!",
         "",
-        "You will see short videos demonstrating hand gestures.",
+        "You will see short videos demonstrating a hand closing.",
         "Each gesture will end with a countdown (3..2..1..GO).",
         "After 'GO' appears, perform the gesture yourself.",
         "",
-        "Make sure your hand is in the correct starting position",
-        "before performing the act.",
-        "There will be 2 min breaks after each 2 minute set.",
+        "Make sure to concentrate solely on this calibration during playthrough,"
+        "and to try to minimize blinking during the calibration.",
+        "There will be breaks after 2 minute set.",
         "",
         "Press 'q' at any time to quit.",
         "Press ENTER to begin..."
