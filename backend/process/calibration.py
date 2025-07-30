@@ -9,9 +9,6 @@ import mmap
 import threading
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-SHARED_MEMORY_NAME = "Local\\GestureSharedMemory"
-SHARED_MEMORY_SIZE = 256
-shm = mmap.mmap(-1, SHARED_MEMORY_SIZE, SHARED_MEMORY_NAME, access=mmap.ACCESS_WRITE)
 
 # --- CONFIG ---
 video_list = [ 
@@ -32,7 +29,7 @@ cycle_duration = 8
 break_duration = 12    
 #total_duration = 60 * 3
 total_duration = 10
-cycle_count = 2
+cycle_count = 1
 count = 0
 
 gesture_code = 0
@@ -276,10 +273,15 @@ def show_instructions(record_data_event):
         elif key == ord('q'):
             exit(0)
 
-def send_gesture_classification(gesture_code):
-    shm.seek(0)
-    shm.write(struct.pack('i', gesture_code))
-    print(f"[SHM] Sent gesture classification: {gesture_code}")
+def send_gesture_classification(code):
+    global gesture_code, gesture_code_lock
+    with gesture_code_lock:
+        gesture_code = code
+
+def get_gesture_code():
+    global gesture_code, gesture_code_lock
+    with gesture_code_lock:
+        return gesture_code 
 
 def calibrate(record_data_event):
     # --- MAIN LOOP ---

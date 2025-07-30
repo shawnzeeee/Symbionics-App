@@ -8,11 +8,9 @@ from muselsl.stream import list_muses
 import threading
 import mmap
 import csv
+from .calibration import get_gesture_code
 stream_process = None
 
-SHARED_MEMORY_NAME = "Local\\GestureSharedMemory"
-SHARED_MEMORY_SIZE = 256
-shm = mmap.mmap(-1, SHARED_MEMORY_SIZE, SHARED_MEMORY_NAME, access=mmap.ACCESS_WRITE)
 
 import asyncio
 def get_devices_list():
@@ -85,6 +83,7 @@ def begin_streaming_data(file_path, start_event, stop_event, record_data_event):
     global eeg_buffer, sample, timestamp
     buffer_size = 4 * 250 *2
     eeg_buffer = np.zeros(buffer_size, dtype=np.float32)
+    previous_class=0
     try:
         with open(file_path, mode='w', newline='') as csvfile:
             writer = csv.writer(csvfile)
@@ -95,8 +94,12 @@ def begin_streaming_data(file_path, start_event, stop_event, record_data_event):
             while not stop_event.is_set():
                 sample, timestamp = inlet.pull_sample()
                 if record_data_event.is_set():
-                    print(record_data_event)
-                    writer.writerow([sample[0], sample[1], sample[2], sample[3], 0])
+                    classification = get_gesture_code()
+                    send_code = 0
+                    if classification != previous_class:
+                        send_code = classification
+                    previous_class = classification
+                    writer.writerow([sample[0], sample[1], sample[2], sample[3], send_code])
                 #with eeg_buffer_lock:
                 eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
                 eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)
