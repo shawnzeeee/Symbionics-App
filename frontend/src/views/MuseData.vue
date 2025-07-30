@@ -118,7 +118,7 @@ function goToNew() {
 }
 
 function goBack() {
-  router.push({ name: "Home" });
+  router.push({ name: "ConnectMuse" });
 }
 
 function goNext() {

@@ -107,7 +107,7 @@ async function disconnect() {
 }
 
 function goBack() {
-  router.push({ name: "Home" });
+  router.push({ name: "MuseData" });
 }
 
 async function beginDataRecording() {

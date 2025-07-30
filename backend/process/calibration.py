@@ -304,5 +304,5 @@ def calibrate(record_data_event):
     print("Video play counts:")
     for video, count in play_counts.items():
         print(f"{os.path.basename(video)}: {count}")
-
+    count = 0
     cv2.destroyAllWindows()
