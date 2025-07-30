@@ -116,7 +116,9 @@ async function beginDataRecording() {
   try {
     const response = await beginCalibration();
     console.log(response);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error)
+  }
 }
 </script>
 
