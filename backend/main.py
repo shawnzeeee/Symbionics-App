@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.device import device_router
 from routers.stream import stream_router
 from routers.calibration import calibration_router
+from routers.loadCsvFiles import router as file_router
 
 app = FastAPI()
 
@@ -18,5 +19,6 @@ app.add_middleware(
 app.include_router(device_router, prefix="/api")
 app.include_router(stream_router, prefix="/api")
 app.include_router(calibration_router, prefix="/api")
+app.include_router(file_router, prefix="/api")
 
 

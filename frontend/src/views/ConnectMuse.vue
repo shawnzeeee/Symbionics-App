@@ -92,9 +92,16 @@ async function connectToDevice(address) {
   try {
     const response = await connectMuse(address);
     console.log(response);
-    connectStatus.value = "Connected!";
-    connecting.value = false;
-    connected.value = true;
+    if (response.data == "Streaming"){
+      connectStatus.value = "Connected!";
+      connected.value = true; 
+      connecting.value = false;
+    }
+    else {
+      connectStatus.value = "Not Connected";
+      connected.value = false;
+    }
+
   } catch (error) {
     console.log(error);
   }

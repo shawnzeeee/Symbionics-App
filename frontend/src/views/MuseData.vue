@@ -90,9 +90,11 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { onMounted } from "vue";
+
 
 const step = ref(1);
-const files = ref(["Nickdata1.csv", "Shawndata1.csv", "Shawndata2.csv"]);
+const files = ref([]);
 const selectedFile = ref(null);
 const router = useRouter();
 
@@ -122,6 +124,18 @@ function goBack() {
 function goNext() {
   router.push({ path: "Final" });
 }
+
+onMounted(async () => {
+  try {
+    const response = await fetch("http://localhost:8000/api/list-csv");
+    const data = await response.json();
+    files.value = data.files;
+    console.log(data)
+  } catch (err) {
+    console.error("Failed to load files:", err);
+  }
+});
+
 </script>
 
 <!-- Tailwind CSS is assumed to be globally included in the project -->
