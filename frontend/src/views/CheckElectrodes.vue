@@ -50,7 +50,7 @@
         @click="beginDataRecording"
         class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
       >
-        Calibration
+        Begin Calibration video
       </button>
     </div>
   </div>

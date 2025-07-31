@@ -15,11 +15,20 @@
           <div
             v-for="file in files"
             :key="file"
-            class="cursor-pointer hover:underline"
-            :class="{ 'font-bold underline': selectedFile === file }"
-            @click="selectFile(file)"
+            class="flex justify-between items-center cursor-pointer hover:underline"
           >
-            {{ file }}
+            <div
+              @click="selectFile(file)"
+              :class="{ 'font-bold underline': selectedFile === file }"
+            >
+              {{ file }}
+            </div>
+            <button
+              @click.stop="deleteFile(file)"
+              class="bg-red-500 text-white text-sm px-2 py-1 rounded hover:bg-red-600 ml-2"
+            >
+              Delete
+            </button>
           </div>
         </div>
 
@@ -123,6 +132,27 @@ function goBack() {
 
 function goNext() {
   router.push({ path: "Final" });
+}
+
+async function deleteFile(fileName) {
+  const confirmed = confirm(`Are you sure you want to delete "${fileName}"?`);
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/delete-csv/${fileName}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      files.value = files.value.filter(f => f !== fileName);
+      if (selectedFile.value === fileName) selectedFile.value = null;
+    } else {
+      alert("Failed to delete file.");
+    }
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("An error occurred.");
+  }
 }
 
 onMounted(async () => {

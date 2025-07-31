@@ -22,30 +22,6 @@
       </button>
     </div>
 
-    <!-- STEP 2: Calibration Video -->
-    <div v-if="step === 2" class="flex flex-col items-center">
-      <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
-      <div
-        class="bg-[#528aa3] text-white px-10 py-6 rounded-md text-lg text-center"
-      >
-        *Insert python script video here*
-      </div>
-      <button
-        @click="nextStep"
-        class="mt-8 bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
-      >
-        Continue
-      </button>
-    </div>
-
-    <!-- STEP 4: Confirmation -->
-    <div v-if="step === 3" class="flex flex-col items-center">
-      <h1 class="text-2xl font-semibold mb-8">Calibration of Muse device</h1>
-      <div class="bg-[#528aa3] text-white px-12 py-6 rounded-md text-xl">
-        Data saved!
-      </div>
-    </div>
-
     <!-- Back Button -->
     <div class="absolute bottom-6 left-6">
       <button

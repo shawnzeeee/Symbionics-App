@@ -71,7 +71,7 @@ const connecting = ref(false);
 const connected = ref(false);
 const connectStatus = ref("");
 const router = useRouter();
-const museDevices = ref([{ name: "Muse 1234", address: "00:55:DA:B0:1E:78" }]);
+const museDevices = ref([]);
 
 async function searchDevices() {
   showDeviceList.value = true;
