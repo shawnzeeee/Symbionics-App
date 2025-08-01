@@ -10,7 +10,7 @@
       <div class="flex gap-8 justify-center w-full max-w-4xl">
         <!-- File List -->
         <div
-          class="bg-[#528aa3] text-white rounded-md p-6 w-64 flex flex-col gap-4 text-lg font-normal"
+          class="bg-[#528aa3] text-white rounded-md p-6 w-96 flex flex-col gap-4 text-lg font-normal"
         >
           <div
             v-for="file in files"

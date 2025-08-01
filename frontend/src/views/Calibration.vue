@@ -11,7 +11,7 @@
           v-model="filename"
           type="text"
           placeholder="e.g., trial1.csv"
-          class="w-full text-[#19596e] px-3 py-2 rounded"
+          class="w-full text-[#19596e] bg-white px-3 py-2 rounded"
         />
       </div>
       <button
