@@ -2,15 +2,6 @@
   <div
     class="bg-gray-100 text-white min-h-screen font-sans flex flex-col items-center px-4 relative"
   >
-    <!-- Disconnect Button -->
-    <div class="absolute top-6 right-6">
-      <button
-        @click="disconnect"
-        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-      >
-        Disconnect
-      </button>
-    </div>
     <!-- Title -->
     <h1
       class="text-2xl md:text-3xl font-medium text-center text-[#19596e] mt-12"
@@ -111,8 +102,6 @@ function goBack() {
 }
 
 async function beginDataRecording() {
-  //router.push({ path: 'Calibration' })
-  //Start calibration
   try {
     const response = await beginCalibration();
     console.log(response);

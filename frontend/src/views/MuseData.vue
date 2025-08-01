@@ -12,20 +12,35 @@
         <div
           class="bg-[#528aa3] text-white rounded-md p-6 w-96 flex flex-col gap-4 text-lg font-normal"
         >
+          <!-- Empty State Message -->
+          <div v-if="files.length === 0" class="text-white italic text-center">
+            No EEG csv files found.
+          </div>
           <div
             v-for="file in files"
             :key="file"
-            class="flex justify-between items-center cursor-pointer hover:underline"
+            class="flex justify-between items-center"
           >
+            <!-- File name -->
             <div
               @click="selectFile(file)"
-              :class="{ 'font-bold underline': selectedFile === file }"
+              class="cursor-pointer"
+              :class="[
+                'hover:underline',
+                selectedFile === file ? 'font-bold underline' : ''
+              ]"
             >
               {{ file }}
             </div>
+
+            <!-- Delete button -->
             <button
               @click.stop="deleteFile(file)"
-              class="bg-red-500 text-white text-sm px-2 py-1 rounded hover:bg-red-600 ml-2"
+              class="text-sm px-2 py-1 rounded ml-2 transition"
+              :class="[
+                'text-white bg-red-500 hover:bg-red-600',
+                'hover:underline'
+              ]"
             >
               Delete
             </button>
