@@ -243,6 +243,8 @@ def show_break(duration):
 
     # --- Step 2: Freeze last frame and show countdown with progress bar ---
     start = time.time()
+    send_gesture_classification(1)
+
     while time.time() - start < duration:
         remaining = math.ceil(duration - (time.time() - start))
         display_frame = last_frame.copy()
@@ -264,7 +266,7 @@ def show_break(duration):
         cv2.putText(display_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
         progress = min(count / cycle_count, 1.0) if cycle_count else 0
         draw_progress_bar(display_frame, progress)
-
+        
         cv2.imshow("Display", display_frame)
         if cv2.waitKey(1000) & 0xFF == ord('q'):
             exit(0)
@@ -374,6 +376,8 @@ def show_instructions(record_data_event):
             exit(0)
 
 def send_gesture_classification(code):
+    print("sent classification ", code)
+
     global gesture_code, gesture_code_lock
     with gesture_code_lock:
         gesture_code = code
@@ -396,7 +400,6 @@ def calibrate(record_data_event):
         # if (time.time() - session_start > total_duration):
         #     break
         break_timestamp = int(time.time() * 1000)  # 13-digit ms precision
-        send_gesture_classification(1)
         show_break(break_duration)
         count += 1
     print("=== Session Complete ===")
@@ -406,8 +409,8 @@ def calibrate(record_data_event):
     count = 0
     cv2.destroyAllWindows()
 
-# def main():
-#     record = threading.Event()
-#     calibrate(record)
-# if __name__== "__main__":
-#     main()
+def main():
+    record = threading.Event()
+    calibrate(record)
+if __name__== "__main__":
+    main()
