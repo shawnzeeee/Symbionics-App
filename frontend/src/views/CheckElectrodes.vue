@@ -6,9 +6,15 @@
     <h1
       class="text-2xl md:text-3xl font-medium text-center text-[#19596e] mt-12"
     >
-      Electrode Calibration: Place Muse on forehead
+      Electrode Calibration: Place Muse on forehead<br></br><br></br>
     </h1>
-
+    <h2
+      class="text-2xl md:text-3xl font-small text-center text-[#19596e] mt-10"
+    >
+      Ensure the middle of the headband remains centered<br></br>
+      Ensure both sides of muse are evenly spaced<br></br><br></br>
+      Wait for all 4 electrodes to be green, indicating good contact
+    </h2>
     <!-- Electrode Checker Box -->
     <div
       class="bg-[#528aa3] p-8 rounded-md w-full max-w-md space-y-6 text-lg mt-12"

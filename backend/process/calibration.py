@@ -9,10 +9,9 @@ import mmap
 import threading
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-
 # --- CONFIG ---
 video_list = [ 
-         os.path.join(script_dir,"../Videos/Handclose2.mp4"),
+        os.path.join(script_dir,"../Videos/Handclose2.mp4"),
 ]
 
 #for controlled randomness
@@ -25,11 +24,11 @@ gesture_labels = {
     "Handclose2.mp4": "Close Hand",
 }
 
-cycle_duration = 8   
-break_duration = 12    
+cycle_duration = 8
+break_duration = 10
 #total_duration = 60 * 3
-total_duration = 10
-cycle_count = 1
+total_duration = 20
+cycle_count = 2
 count = 0
 
 gesture_code = 0
@@ -72,7 +71,7 @@ def play_video_then_countdown(path, gesture_index):
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 1.2
         thickness = 3
-        text_size, baseline = cv2.getTextSize(label, font, font_scale, thickness)
+        text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
         text_width, text_height = text_size
 
         # Center position
@@ -80,16 +79,15 @@ def play_video_then_countdown(path, gesture_index):
         text_x = center_x - text_width // 2
         text_y = 60  # distance from top
 
-        # Draw background rectangle
-        box_padding = 10
-        top_left = (text_x - box_padding, text_y - text_height - box_padding)
-        bottom_right = (text_x + text_width + box_padding, text_y + baseline + box_padding)
-        cv2.rectangle(resized_frame, top_left, bottom_right, (255, 255, 255), -1)  # White box
-        cv2.rectangle(resized_frame, top_left, bottom_right, (0, 0, 0), 2)         # Black border
+        # # Draw background rectangle
+        # box_padding = 10
+        # top_left = (text_x - box_padding, text_y - text_height - box_padding)
+        # bottom_right = (text_x + text_width + box_padding, text_y + baseline + box_padding)
+        # cv2.rectangle(resized_frame, top_left, bottom_right, (255, 255, 255), -1)  # White box
+        # cv2.rectangle(resized_frame, top_left, bottom_right, (0, 0, 0), 2)         # Black border
 
         # Draw label text
-        cv2.putText(resized_frame, label, (text_x, text_y), font,
-                    font_scale, (0, 0, 0), thickness)
+        cv2.putText(resized_frame, label, (text_x, text_y), font, font_scale, (0, 0, 0), thickness)
         
         # Calculate progress bar based on cycle count
         global count, cycle_count
@@ -129,8 +127,8 @@ def play_video_then_countdown(path, gesture_index):
 
         top_left_title = (text_x_title - 10, text_y_title - text_height_title - 10)
         bottom_right_title = (text_x_title + text_width_title + 10, text_y_title + baseline_title + 10)
-        cv2.rectangle(overlay, top_left_title, bottom_right_title, (255, 255, 255), -1)
-        cv2.rectangle(overlay, top_left_title, bottom_right_title, (0, 0, 0), 2)
+        # cv2.rectangle(overlay, top_left_title, bottom_right_title, (255, 255, 255), -1)
+        # cv2.rectangle(overlay, top_left_title, bottom_right_title, (0, 0, 0), 2)
         cv2.putText(overlay, label, (text_x_title, text_y_title), font, font_scale_title, (0, 0, 0), thickness_title)
 
         # --- Countdown just below title ---
@@ -145,9 +143,9 @@ def play_video_then_countdown(path, gesture_index):
 
         top_left = (text_x - 10, text_y - text_height - 10)
         bottom_right = (text_x + text_width + 10, text_y + baseline + 10)
-        cv2.rectangle(overlay, top_left, bottom_right, (255, 255, 255), -1)
-        cv2.rectangle(overlay, top_left, bottom_right, (0, 0, 0), 2)
-        cv2.putText(overlay, countdown_text, (text_x, text_y+10), font, font_scale_countdown, (0, 0, 0), thickness_countdown)
+        # cv2.rectangle(overlay, top_left, bottom_right, (255, 255, 255), -1)
+        # cv2.rectangle(overlay, top_left, bottom_right, (0, 0, 0), 2)
+        # cv2.putText(overlay, countdown_text, (text_x, text_y+10), font, font_scale_countdown, (0, 0, 0), thickness_countdown)
         
         # Progress bar for overlay
         progress = min(count / cycle_count, 1.0) if cycle_count else 0
@@ -163,11 +161,11 @@ def play_video_then_countdown(path, gesture_index):
             send_gesture_classification(2)
             # Show hold message for 8 seconds (no class 16 sent)
             hold_frame = overlay.copy()
-            hold_text = "Hold the gesture!"
+            hold_text = "Close your hand!"
             font = cv2.FONT_HERSHEY_SIMPLEX
             text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
             text_x = (hold_frame.shape[1] - text_size[0]) // 2
-            text_y = hold_frame.shape[0] // 2 + 100
+            text_y = hold_frame.shape[0] // 2 - 50
             cv2.putText(hold_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
             for _ in range(8):
                 cv2.imshow("Display", hold_frame)
@@ -199,25 +197,75 @@ def play_balanced_videos_for(duration):
             break
         
 def show_break(duration):
-    def put_centered_text(img, text, y, font_scale=1.5, thickness=2, color=(0, 0, 0)):
+
+    # Load hand open video
+    open_video_path = os.path.join(script_dir, "../Videos/Handopen2.mp4")
+    cap = cv2.VideoCapture(open_video_path)
+    last_frame = None
+    fps = 60
+    delay = int(1000 / fps) if fps > 0 else 33
+
+    if not cap.isOpened():
+        print(f"Could not load hand open video: {open_video_path}")
+        return
+
+    # --- Step 1: Play video frames with progress bar ---
+    global count, cycle_count
+    progress = min(count / cycle_count, 1.0) if cycle_count else 0
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame = cv2.resize(frame, (720, 720))
+        last_frame = frame.copy()
+
+        # Draw label at top center
         font = cv2.FONT_HERSHEY_SIMPLEX
-        text_size, _ = cv2.getTextSize(text, font, font_scale, thickness)
-        text_x = (img.shape[1] - text_size[0]) // 2
-        cv2.putText(img, text, (text_x, y), font, font_scale, color, thickness)
+        label = "Open Hand"
+        text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
+        text_x = (frame.shape[1] - text_size[0]) // 2
+        text_y = 60
+        cv2.putText(frame, label, (text_x, text_y), font, 1.2, (0, 0, 0), 3)
 
-    # Use higher resolution for better text quality
-    frame_height, frame_width = 720, 720
+        # Draw progress bar on video frame
+        draw_progress_bar(frame, progress)
+        cv2.imshow("Display", frame)
+
+        if cv2.waitKey(delay) & 0xFF == ord('q'):
+            exit(0)
+
+    cap.release()
+
+    if last_frame is None:
+        print("No valid frame found in hand open video.")
+        return
+
+    # --- Step 2: Freeze last frame and show countdown with progress bar ---
     start = time.time()
-
     while time.time() - start < duration:
         remaining = math.ceil(duration - (time.time() - start))
+        display_frame = last_frame.copy()
+        
+        #label at top
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        label = "Open Hand"
+        text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
+        text_x = (display_frame.shape[1] - text_size[0]) // 2
+        text_y = 60
+        cv2.putText(display_frame, label, (text_x, text_y), font, 1.2, (0, 0, 0), 3)
 
-        frame = np.full((frame_height, frame_width, 3), 230, dtype=np.uint8)  # Light gray
+        # Text and updated progress
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        hold_text = "Open/relax your hand!"
+        text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
+        text_x = (display_frame.shape[1] - text_size[0]) // 2
+        text_y = display_frame.shape[0] // 2 - 50
+        cv2.putText(display_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
+        progress = min(count / cycle_count, 1.0) if cycle_count else 0
+        draw_progress_bar(display_frame, progress)
 
-        put_centered_text(frame, 'Break Time', y=300, font_scale=2.5, thickness=5, color=(0, 0, 255))
-        put_centered_text(frame, f'Resumes in: {remaining} s', y=450, font_scale=1.5, thickness=2)
-
-        cv2.imshow("Display", frame)
+        cv2.imshow("Display", display_frame)
         if cv2.waitKey(1000) & 0xFF == ord('q'):
             exit(0)
 
@@ -238,37 +286,89 @@ def draw_progress_bar(frame, progress, max_width=200, height=20):
     cv2.rectangle(frame, (x_start, y_start), (x_start + fill_width, y_start + height), (0, 128, 0), -1)
 
 def show_instructions(record_data_event):
-    frame = np.full((800, 1000, 3), 245, dtype=np.uint8)  # soft gray background
+    def draw_page(lines):
+        frame = np.full((800, 1000, 3), 245, dtype=np.uint8)
+        y = 100
+        for line in lines:
+            text_size, _ = cv2.getTextSize(line, font, 1, 2)
+            x = (frame.shape[1] - text_size[0]) // 2
+            cv2.putText(frame, line, (x, y), font, 1, (0, 0, 0), 2)
+            y += 60
+        return frame
+
     font = cv2.FONT_HERSHEY_SIMPLEX
 
-    instructions = [
+    # Page 1
+    page1 = [
         "Welcome to the Symbionics Calibration Video!",
         "",
-        "You will see short videos demonstrating a hand closing.",
-        "Each gesture will end with a countdown (3..2..1..GO).",
-        "After 'GO' appears, perform the gesture yourself.",
+        "This process will help train the system to recognize",
+        "your unique brain signals for each hand gesture.",
         "",
-        "Make sure to concentrate solely on this calibration during playthrough,"
-        "and to try to minimize blinking during the calibration.",
-        "There will be breaks after 2 minute set.",
+        "Each hand action will be shown as a short video.",
+        "You will be asked to perform the same gesture.",
         "",
-        "Press 'q' at any time to quit.",
-        "Press ENTER to begin..."
+        "Try to imagine yourself opening/closing your hand",
+        "",
+        "Press ENTER to continue to the next page...",
+        "Press Q to quit at any time."
     ]
 
-    y = 100
-    for line in instructions:
-        text_size, _ = cv2.getTextSize(line, font, 1, 2)
-        x = (frame.shape[1] - text_size[0]) // 2
-        cv2.putText(frame, line, (x, y), font, 1, (0, 0, 0), 2)
-        y += 60
+    # Page 2
+    page2 = [
+        "Instruction Summary:",
+        "",
+        "1. Watch the hand gesture video.",
+        "2. When instructed in red, perform/imagine ",
+        "   yourself opening/closing your hand.",
+        "3. Hold the gesture for 10s until the next screen.",
+        "4. Open/relax your hand for 10s during the next video.",
+        "5. Repeat 3 and 4 until program ends.",
+        "",
+        "Press ENTER to continue to the next page...",
+        "Press Q to quit."
+    ]
 
-    cv2.imshow("Display", frame)
+    # Page 3
+    page3 = [
+        "Reminder for the entire process:",
+        "",
+        " - Sit comfortably with your back straight.",
+        " - Keep your arm and hand relaxed on a surface.",
+        " - Minimize facial movement and eye blinks.",
+        " - Keep your eyes fixated on the screen.",
+        " - Avoid jaw clenching or unnecessary muscle tension.",
+        " - Motor imagery - Imagination is key!",
+        "",
+        "We're about to begin the session.",
+        "Press ENTER to begin.",
+        "Press Q to quit."
+    ]
+
+    # --- Show Page 1 ---
+    cv2.imshow("Display", draw_page(page1))
     while True:
         key = cv2.waitKey(0) & 0xFF
-        if key == ord('\r') or key == 13:  # Enter key on Windows
+        if key == ord('\r') or key == 13:
+            break
+        elif key == ord('q'):
+            exit(0)
+
+    # --- Show Page 2 ---
+    cv2.imshow("Display", draw_page(page2))
+    while True:
+        key = cv2.waitKey(0) & 0xFF
+        if key == ord('\r') or key == 13:
+            break
+        elif key == ord('q'):
+            exit(0)
+
+    # --- Show Page 3 ---
+    cv2.imshow("Display", draw_page(page3))
+    while True:
+        key = cv2.waitKey(0) & 0xFF
+        if key == ord('\r') or key == 13:
             record_data_event.set()
-            print(record_data_event)
             break
         elif key == ord('q'):
             exit(0)
@@ -295,7 +395,6 @@ def calibrate(record_data_event):
         play_balanced_videos_for(cycle_duration)
         # if (time.time() - session_start > total_duration):
         #     break
-        print("[BREAK] Taking a break...")
         break_timestamp = int(time.time() * 1000)  # 13-digit ms precision
         send_gesture_classification(1)
         show_break(break_duration)
@@ -306,3 +405,9 @@ def calibrate(record_data_event):
         print(f"{os.path.basename(video)}: {count}")
     count = 0
     cv2.destroyAllWindows()
+
+# def main():
+#     record = threading.Event()
+#     calibrate(record)
+# if __name__== "__main__":
+#     main()
