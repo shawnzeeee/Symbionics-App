@@ -44,19 +44,21 @@
     <!-- Return & Begin Buttons -->
     <div class="absolute bottom-6 right-6 flex flex-col items-end space-y-3">
 
-      <!-- Return to Muse Data Screen -->
+      
       <button
-        @click="goToMuseData"
-        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
+        @click="beginDataRecording"
+        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
+        
       >
-        Return to Muse Data Screen after completion of video
+        Begin Calibration Video
       </button>
 
+    <!-- Return to Muse Data Screen -->
     <button
-      @click="beginDataRecording"
-      class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
+      @click="goToMuseData"
+      class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
     >
-      Begin Calibration Video
+      Return to Muse Data Screen after completion of video
     </button>
 
 

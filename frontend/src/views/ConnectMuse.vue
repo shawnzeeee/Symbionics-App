@@ -60,14 +60,13 @@
         <button
           :disabled="connecting || connected"
           @click="connectToDevice(device.address)"
-          class="underline hover:text-gray-100 transition"
-          :class="{ 'opacity-50': connecting || connected }"
+          class="bg-white text-[#19596e] text-sm px-4 py-1 rounded hover:bg-gray-200 transition ml-auto"
+          :class="{ '': connecting || connected }"
         >
           {{
             connecting ? "Connecting..." : connected ? "Connected!" : "Connect"
           }}
         </button>
-        <span class="ml-2">{{ connectStatus }}</span>
       </div>
     </div>
 
