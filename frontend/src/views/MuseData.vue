@@ -115,7 +115,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { onMounted } from "vue";
-
+import {loadFileToGlove} from "../api.js"
 
 const step = ref(1);
 const files = ref([]);
@@ -126,15 +126,9 @@ function selectFile(file) {
   selectedFile.value = file;
 }
 
-function loadFile() {
-  if (!selectedFile.value) {
-    alert("Please select a file to load.");
-    return;
-  }
-  step.value = 2;
-  setTimeout(() => {
-    step.value = 3;
-  }, 2000);
+async function loadFile() {
+  response = await loadFileToGlove(selectedFile.value)
+  console.log(response)
 }
 
 function goToNew() {
