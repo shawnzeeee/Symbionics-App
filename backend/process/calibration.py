@@ -29,10 +29,8 @@ cycle_duration = 8
 break_duration = 12
 total_duration = 60 * 2
 # total_duration = 
-cycle_count = 6
+cycle_count = 7
 count = 0
-
-exit_flag = False
 
 exit_flag = False
 
@@ -51,13 +49,11 @@ previous_class = 0
 
 def play_video_then_countdown(path, gesture_index):
     global exit_flag
-    global exit_flag
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         print(f"Cannot open: {path}")
         return
 
-    frame_rate = 60
     frame_rate = 60
     last_frame = None
     cv2.namedWindow("Display", cv2.WINDOW_NORMAL)
@@ -187,8 +183,6 @@ def play_video_then_countdown(path, gesture_index):
     if cv2.waitKey(1000) & 0xFF == ord('q'):
         exit_flag = True
         return
-        exit_flag = True
-        return
 
     # Do NOT destroy the window here — reused across calls
 
@@ -279,8 +273,6 @@ def show_break(duration):
         
         cv2.imshow("Display", display_frame)
         if cv2.waitKey(1000) & 0xFF == ord('q'):
-            exit_flag = True
-            return
             exit_flag = True
             return
 
