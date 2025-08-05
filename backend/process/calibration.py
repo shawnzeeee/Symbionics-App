@@ -25,11 +25,11 @@ gesture_labels = {
     "Handclose2.mp4": "Wait to Close Hand...",
 }
 
-cycle_duration = 8   
-break_duration = 12    
-#total_duration = 60 * 3
-total_duration = 20
-cycle_count = 2
+cycle_duration = 8
+break_duration = 12
+total_duration = 60 * 2
+# total_duration = 
+cycle_count = 6
 count = 0
 
 exit_flag = False
