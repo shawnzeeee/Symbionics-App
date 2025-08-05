@@ -23,4 +23,5 @@ def delete_csv_file(filename: str):
         os.remove(file_path)
         return {"message": f"{filename} deleted successfully"}
     except Exception as e:
+        print(f"exception occured:{e}")
         raise HTTPException(status_code=500, detail=str(e))

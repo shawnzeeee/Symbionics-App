@@ -36,7 +36,7 @@
             <!-- Delete button -->
             <button
               @click.stop="deleteFile(file)"
-              class="text-sm px-2 py-1 rounded ml-2 transition"
+              class="text-sm px-2 py-1 rounded ml-2 transition cursor-pointer"
               :class="[
                 'text-white bg-red-500 hover:bg-red-600',
                 'hover:underline'

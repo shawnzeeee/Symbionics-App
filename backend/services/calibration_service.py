@@ -49,7 +49,9 @@ class CalibrationService:
         if muselsl_thread.is_alive() and muselsl_start_event.is_set() and self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():       
             calibrate(self.record_data_event)
 
-        self.disconnect_muse()
+        # self.disconnect_muse()
+        self.pylsl_stop_event.set()
+        return {"data":"Succesfully calibrated"}
 
     async def begin_checking_signal(self, websocket):
         # Build the path in the SavedData folder

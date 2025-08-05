@@ -41,15 +41,27 @@
       </button>
     </div>
 
-    <!-- Next Button -->
-    <div class="absolute bottom-6 right-6">
+    <!-- Return & Begin Buttons -->
+    <div class="absolute bottom-6 right-6 flex flex-col items-end space-y-3">
+
+      <!-- Return to Muse Data Screen -->
       <button
-        @click="beginDataRecording"
-        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
+        @click="goToMuseData"
+        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
       >
-        Begin Calibration video
+        Return to Muse Data Screen after completion of video
       </button>
+
+    <button
+      @click="beginDataRecording"
+      class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
+    >
+      Begin Calibration Video
+    </button>
+
+
     </div>
+
   </div>
 </template>
 
@@ -104,6 +116,10 @@ async function disconnect() {
 }
 
 function goBack() {
+  router.push({ name: "MuseData" });
+}
+
+function goToMuseData() {
   router.push({ name: "MuseData" });
 }
 

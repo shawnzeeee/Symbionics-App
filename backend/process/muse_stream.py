@@ -92,7 +92,7 @@ def begin_streaming_data(file_path, start_event, stop_event, record_data_event):
             inlet = connect_to_eeg_stream()
             start_event.set()
             while not stop_event.is_set():
-                sample, timestamp = inlet.pull_sample()
+                sample, timestamp = inlet.pull_sample(timeout=1)
                 if record_data_event.is_set():
                     classification = get_gesture_code()
                     send_code = 0
@@ -104,6 +104,7 @@ def begin_streaming_data(file_path, start_event, stop_event, record_data_event):
                 eeg_buffer = np.roll(eeg_buffer, -4)      # Shift left by 4
                 eeg_buffer[-4:] = sample[:4]              # Insert new sample at the end (right)
             print("Ending pylsl_stream")
+        csvfile.close()
     except KeyboardInterrupt:
         print("\n[INFO] Stopping...")
     except Exception as e:
@@ -111,10 +112,6 @@ def begin_streaming_data(file_path, start_event, stop_event, record_data_event):
 
     print("Ending pylsl_stream")
     return "Stream Ended"
-
-def save_data_to_csv():
-    return
-
 
 async def check_signal(websocket, stop_event):
     global eeg_buffer, eeg_buffer_lock
