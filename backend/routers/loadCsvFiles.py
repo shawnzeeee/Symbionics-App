@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pathlib import Path
 from fastapi import HTTPException
 import os
-from process import LoadCsvToMuse
+# from process import LoadCsvToMuse
 router = APIRouter()
 
 @router.get("/list-csv")
@@ -27,5 +27,6 @@ def delete_csv_file(filename: str):
     
 @router.get("/load-file")
 def load_file(filename: str):
-    response = LoadCsvToMuse(filename)
-    return response
+    # response = LoadCsvToMuse(filename)
+    #     response = filename
+    return {"data": filename}

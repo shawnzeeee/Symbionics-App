@@ -127,8 +127,12 @@ function selectFile(file) {
 }
 
 async function loadFile() {
-  response = await loadFileToGlove(selectedFile.value)
-  console.log(response)
+  try{
+    const response = await loadFileToGlove(selectedFile.value)
+    console.log(response)
+  }catch(error){
+    console.log(error)
+  }
 }
 
 function goToNew() {

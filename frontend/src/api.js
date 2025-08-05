@@ -28,7 +28,7 @@ export async function beginPylslStream(file_name) {
 
 export async function loadFileToGlove(file_name){
   const response = await axios.get(
-    `${API_BASE_URL}/load-file?file_name=${file_name}`
+    `${API_BASE_URL}/load-file?filename=${file_name}`
   );
   return response.data;
 }
