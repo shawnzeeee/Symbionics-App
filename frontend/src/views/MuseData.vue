@@ -130,6 +130,9 @@ async function loadFile() {
   try{
     const response = await loadFileToGlove(selectedFile.value)
     console.log(response)
+    if (response.success == true){
+      router.push({ path: "Final" });
+    }
   }catch(error){
     console.log(error)
   }

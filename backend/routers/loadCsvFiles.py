@@ -26,8 +26,32 @@ def delete_csv_file(filename: str):
     except Exception as e:
         print(f"exception occured:{e}")
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 @router.get("/load-file")
 def load_file(filename: str):
-    response = LoadCsvToPi(filename)
-    return {"data": filename}
+    try:
+        message = LoadCsvToPi(filename)
+        return {
+            "success": True,
+            "message": message,
+            "filename": filename
+        }
+    except FileNotFoundError as e:
+        return {
+            "success": False,
+            "message": str(e),
+            "filename": filename
+        }
+    except PermissionError as e:
+        return {
+            "success": False,
+            "message": str(e),
+            "filename": filename
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Unexpected error: {str(e)}",
+            "filename": filename
+        }

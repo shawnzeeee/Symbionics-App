@@ -15,13 +15,12 @@ def LoadCsvToPi(filename):
     # === Check if USB drive exists ===
     if not os.path.exists(usb_mount_path):
         print(f"USB drive '{usb_mount_path}' not found. Please insert the USB drive and try again.")
-        return ("im boutta buss with no usb found")
-
+        raise FileNotFoundError("USB NOT FOUND")
+    
     # === Check if source file exists ===
     if not os.path.isfile(source_file):
         print(f"Source file '{source_file}' does not exist.")
-        return ("im boutta buss with no source file found")
-
+        raise FileNotFoundError("FILE NOT FOUND")
     # === Copy the file ===
     try:
         # Just copy — let it overwrite if allowed
