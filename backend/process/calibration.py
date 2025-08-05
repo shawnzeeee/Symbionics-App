@@ -87,13 +87,6 @@ def play_video_then_countdown(path, gesture_index):
         text_x = center_x - text_width // 2
         text_y = 60  # distance from top
 
-        # Draw background rectangle
-        box_padding = 10
-        top_left = (text_x - box_padding, text_y - text_height - box_padding)
-        bottom_right = (text_x + text_width + box_padding, text_y + baseline + box_padding)
-        cv2.rectangle(resized_frame, top_left, bottom_right, (255, 255, 255), -1)  # White box
-        cv2.rectangle(resized_frame, top_left, bottom_right, (0, 0, 0), 2)         # Black border
-
         # Draw label text
         cv2.putText(resized_frame, label, (text_x, text_y), font,
                     font_scale, (0, 0, 0), thickness)
@@ -142,8 +135,6 @@ def play_video_then_countdown(path, gesture_index):
 
         top_left_title = (text_x_title - 10, text_y_title - text_height_title - 10)
         bottom_right_title = (text_x_title + text_width_title + 10, text_y_title + baseline_title + 10)
-        cv2.rectangle(overlay, top_left_title, bottom_right_title, (255, 255, 255), -1)
-        cv2.rectangle(overlay, top_left_title, bottom_right_title, (0, 0, 0), 2)
         cv2.putText(overlay, label, (text_x_title, text_y_title), font, font_scale_title, (0, 0, 0), thickness_title)
 
         # --- Countdown just below title ---
@@ -158,15 +149,13 @@ def play_video_then_countdown(path, gesture_index):
 
         top_left = (text_x - 10, text_y - text_height - 10)
         bottom_right = (text_x + text_width + 10, text_y + baseline + 10)
-        cv2.rectangle(overlay, top_left, bottom_right, (255, 255, 255), -1)
-        cv2.rectangle(overlay, top_left, bottom_right, (0, 0, 0), 2)
-        cv2.putText(overlay, countdown_text, (text_x, text_y+10), font, font_scale_countdown, (0, 0, 0), thickness_countdown)
+        # cv2.putText(overlay, countdown_text, (text_x, text_y+10), font, font_scale_countdown, (0, 0, 0), thickness_countdown)
         
         # Progress bar for overlay
         progress = min(count / cycle_count, 1.0) if cycle_count else 0
         draw_progress_bar(overlay, progress)
 
-        cv2.imshow("Display", overlay)
+        # cv2.imshow("Display", overlay)
 
         if i == "GO":
             timestamp = int(time.time() * 1000)  # 13-digit ms precision
@@ -175,7 +164,7 @@ def play_video_then_countdown(path, gesture_index):
             class_index = video_list.index(path)
             # Show hold message for 8 seconds (no class 16 sent)
             hold_frame = overlay.copy()
-            hold_text = "Hold the gesture!"
+            hold_text = "Close your hand!"
             font = cv2.FONT_HERSHEY_SIMPLEX
             text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
             text_x = (hold_frame.shape[1] - text_size[0]) // 2
@@ -186,11 +175,7 @@ def play_video_then_countdown(path, gesture_index):
                 if cv2.waitKey(1000) & 0xFF == ord('q'):
                     exit_flag = True
                     return
-                    exit_flag = True
-                    return
         if cv2.waitKey(1000) & 0xFF == ord('q'):
-            exit_flag = True
-            return
             exit_flag = True
             return
 
@@ -455,8 +440,8 @@ def calibrate(record_data_event):
     count = 0
     cv2.destroyAllWindows()
 
-# def main():
-#     record = threading.Event()
-#     calibrate(record)
-# if __name__== "__main__":
-#     main()
+def main():
+    record = threading.Event()
+    calibrate(record)
+if __name__== "__main__":
+    main()
