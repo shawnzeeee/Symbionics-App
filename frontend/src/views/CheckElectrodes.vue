@@ -2,22 +2,19 @@
   <div
     class="bg-gray-100 text-white min-h-screen font-sans flex flex-col items-center px-4 relative"
   >
-    <!-- Disconnect Button -->
-    <div class="absolute top-6 right-6">
-      <button
-        @click="disconnect"
-        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-      >
-        Disconnect
-      </button>
-    </div>
     <!-- Title -->
     <h1
       class="text-2xl md:text-3xl font-medium text-center text-[#19596e] mt-12"
     >
-      Electrode Calibration: Place Muse on forehead
+      Electrode Calibration: Place Muse on forehead<br></br><br></br>
     </h1>
-
+    <h2
+      class="text-2xl md:text-3xl font-small text-center text-[#19596e] mt-10"
+    >
+      Ensure the middle of the headband remains centered<br></br>
+      Ensure both sides of muse are evenly spaced<br></br><br></br>
+      Wait for all 4 electrodes to be green, indicating good contact
+    </h2>
     <!-- Electrode Checker Box -->
     <div
       class="bg-[#528aa3] p-8 rounded-md w-full max-w-md space-y-6 text-lg mt-12"
@@ -50,7 +47,7 @@
         @click="beginDataRecording"
         class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
       >
-        Calibration
+        Begin Calibration video
       </button>
     </div>
   </div>
@@ -111,8 +108,6 @@ function goBack() {
 }
 
 async function beginDataRecording() {
-  //router.push({ path: 'Calibration' })
-  //Start calibration
   try {
     const response = await beginCalibration();
     console.log(response);

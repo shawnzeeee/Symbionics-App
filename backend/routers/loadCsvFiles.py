@@ -1,12 +1,26 @@
 from fastapi import APIRouter
 from pathlib import Path
+from fastapi import HTTPException
+import os
 
 router = APIRouter()
 
 @router.get("/list-csv")
 def list_csv_files():
-    print("called loadcsvfiles.py")
     data_dir = Path(__file__).resolve().parent.parent / "SavedData"
     files = [f.name for f in data_dir.glob("*.csv")]
-    print(files)
     return {"files": files}
+
+@router.delete("/delete-csv/{filename}")
+def delete_csv_file(filename: str):
+    data_dir = Path(__file__).resolve().parent.parent / "SavedData"
+    file_path = data_dir / filename
+
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    try:
+        os.remove(file_path)
+        return {"message": f"{filename} deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

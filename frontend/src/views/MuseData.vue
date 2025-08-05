@@ -10,16 +10,40 @@
       <div class="flex gap-8 justify-center w-full max-w-4xl">
         <!-- File List -->
         <div
-          class="bg-[#528aa3] text-white rounded-md p-6 w-64 flex flex-col gap-4 text-lg font-normal"
+          class="bg-[#528aa3] text-white rounded-md p-6 w-96 flex flex-col gap-4 text-lg font-normal"
         >
+          <!-- Empty State Message -->
+          <div v-if="files.length === 0" class="text-white italic text-center">
+            No EEG csv files found.
+          </div>
           <div
             v-for="file in files"
             :key="file"
-            class="cursor-pointer hover:underline"
-            :class="{ 'font-bold underline': selectedFile === file }"
-            @click="selectFile(file)"
+            class="flex justify-between items-center"
           >
-            {{ file }}
+            <!-- File name -->
+            <div
+              @click="selectFile(file)"
+              class="cursor-pointer"
+              :class="[
+                'hover:underline',
+                selectedFile === file ? 'font-bold underline' : ''
+              ]"
+            >
+              {{ file }}
+            </div>
+
+            <!-- Delete button -->
+            <button
+              @click.stop="deleteFile(file)"
+              class="text-sm px-2 py-1 rounded ml-2 transition"
+              :class="[
+                'text-white bg-red-500 hover:bg-red-600',
+                'hover:underline'
+              ]"
+            >
+              Delete
+            </button>
           </div>
         </div>
 
@@ -123,6 +147,27 @@ function goBack() {
 
 function goNext() {
   router.push({ path: "Final" });
+}
+
+async function deleteFile(fileName) {
+  const confirmed = confirm(`Are you sure you want to delete "${fileName}"?`);
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/delete-csv/${fileName}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      files.value = files.value.filter(f => f !== fileName);
+      if (selectedFile.value === fileName) selectedFile.value = null;
+    } else {
+      alert("Failed to delete file.");
+    }
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("An error occurred.");
+  }
 }
 
 onMounted(async () => {

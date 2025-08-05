@@ -2,16 +2,46 @@
   <div
     class="bg-gray-100 text-[#19596e] min-h-screen font-sans flex flex-col items-center pt-12 px-4 relative"
   >
-    <!-- Title + Search -->
+        <!-- Title + Spinner + Search -->
     <div class="w-full max-w-2xl flex justify-between items-center mb-6">
       <h1 class="text-3xl font-medium">Find Available Devices</h1>
-      <button
-        @click="searchDevices"
-        class="bg-sky-400 text-[#19596e] font-medium px-4 py-2 rounded hover:bg-sky-500 transition"
-      >
-        Search
-      </button>
+
+      <div class="flex items-center gap-4">
+        <!-- Spinner on the LEFT of the button -->
+        <div v-if="isSearching" class="flex items-center gap-2">
+          <svg
+            class="animate-spin h-6 w-6 text-[#19596e]"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
+        </div>
+
+        <!-- Search button -->
+        <button
+          @click="searchDevices"
+          class="bg-sky-400 text-[#19596e] font-medium px-4 py-2 rounded hover:bg-sky-500 transition"
+        >
+          Search
+        </button>
+      </div>
     </div>
+
+
 
     <!-- Device List -->
     <div
@@ -71,18 +101,23 @@ const connecting = ref(false);
 const connected = ref(false);
 const connectStatus = ref("");
 const router = useRouter();
-const museDevices = ref([{ name: "Muse 1234", address: "00:55:DA:B0:1E:78" }]);
+const museDevices = ref([]);
+const isSearching = ref(false);
 
 async function searchDevices() {
-  showDeviceList.value = true;
   connectStatus.value = "";
   connecting.value = false;
   connected.value = false;
+  isSearching.value = true;
+
   try {
     const response = await fetchDevices();
     museDevices.value = response.data;
+    showDeviceList.value = true;
   } catch (error) {
     console.log("Failed to fetch devices: ", error);
+  } finally {
+    isSearching.value = false;
   }
 }
 
