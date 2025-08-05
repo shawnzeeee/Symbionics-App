@@ -23,14 +23,17 @@ play_order = []
 gesture_labels = {
    # "Handopen2.mp4": "Open Hand",
     "Handclose2.mp4": "Wait to Close Hand...",
+    "Handclose2.mp4": "Wait to Close Hand...",
 }
 
 cycle_duration = 8   
 break_duration = 12    
 #total_duration = 60 * 3
-total_duration = 10
-cycle_count = 6
+total_duration = 20
+cycle_count = 2
 count = 0
+
+exit_flag = False
 
 exit_flag = False
 
@@ -49,11 +52,13 @@ previous_class = 0
 
 def play_video_then_countdown(path, gesture_index):
     global exit_flag
+    global exit_flag
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         print(f"Cannot open: {path}")
         return
 
+    frame_rate = 60
     frame_rate = 60
     last_frame = None
     cv2.namedWindow("Display", cv2.WINDOW_NORMAL)
@@ -106,6 +111,9 @@ def play_video_then_countdown(path, gesture_index):
             exit_flag = True
             return
     
+            exit_flag = True
+            return
+    
     cap.release()
 
     if last_frame is None:
@@ -118,6 +126,8 @@ def play_video_then_countdown(path, gesture_index):
 
     # --- Show 3..2..1 countdown on the last frame ---
     skip_countdown = True  # Set to True to skip countdown and jump to GO
+    send_gesture_classification(2)
+
     send_gesture_classification(2)
 
     for i in (["GO"] if skip_countdown else [3, 2, 1, "GO"]):
@@ -172,14 +182,18 @@ def play_video_then_countdown(path, gesture_index):
             font = cv2.FONT_HERSHEY_SIMPLEX
             text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
             text_x = (hold_frame.shape[1] - text_size[0]) // 2
-            text_y = hold_frame.shape[0] // 2 - 50
+            text_y = 120
             cv2.putText(hold_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
             for _ in range(8):
                 cv2.imshow("Display", hold_frame)
                 if cv2.waitKey(1000) & 0xFF == ord('q'):
                     exit_flag = True
                     return
+                    exit_flag = True
+                    return
         if cv2.waitKey(1000) & 0xFF == ord('q'):
+            exit_flag = True
+            return
             exit_flag = True
             return
 
@@ -189,6 +203,8 @@ def play_video_then_countdown(path, gesture_index):
     
     cv2.imshow("Display", last_frame)
     if cv2.waitKey(1000) & 0xFF == ord('q'):
+        exit_flag = True
+        return
         exit_flag = True
         return
 
@@ -207,12 +223,12 @@ def play_balanced_videos_for(duration):
             break
         
 def show_break(duration):
-
+    global exit_flag
     # Load hand open video
     open_video_path = os.path.join(script_dir, "../Videos/Handopen2.mp4")
     cap = cv2.VideoCapture(open_video_path)
     last_frame = None
-    fps = 60
+    fps = 30
     delay = int(1000 / fps) if fps > 0 else 33
 
     if not cap.isOpened():
@@ -232,7 +248,7 @@ def show_break(duration):
 
         # Draw label at top center
         font = cv2.FONT_HERSHEY_SIMPLEX
-        label = "Open Hand"
+        label = "Wait to Open Hand..."
         text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
         text_x = (frame.shape[1] - text_size[0]) // 2
         text_y = 60
@@ -243,7 +259,8 @@ def show_break(duration):
         cv2.imshow("Display", frame)
 
         if cv2.waitKey(delay) & 0xFF == ord('q'):
-            exit(0)
+            exit_flag = True
+            return
 
     cap.release()
 
@@ -255,13 +272,14 @@ def show_break(duration):
     start = time.time()
     send_gesture_classification(1)
 
+
     while time.time() - start < duration:
         remaining = math.ceil(duration - (time.time() - start))
         display_frame = last_frame.copy()
         
         #label at top
         font = cv2.FONT_HERSHEY_SIMPLEX
-        label = "Open Hand"
+        label = "Wait to Open Hand..."
         text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
         text_x = (display_frame.shape[1] - text_size[0]) // 2
         text_y = 60
@@ -272,13 +290,15 @@ def show_break(duration):
         hold_text = "Open/relax your hand!"
         text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
         text_x = (display_frame.shape[1] - text_size[0]) // 2
-        text_y = display_frame.shape[0] // 2 - 50
+        text_y = 120
         cv2.putText(display_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
         progress = min(count / cycle_count, 1.0) if cycle_count else 0
         draw_progress_bar(display_frame, progress)
         
         cv2.imshow("Display", display_frame)
         if cv2.waitKey(1000) & 0xFF == ord('q'):
+            exit_flag = True
+            return
             exit_flag = True
             return
 
@@ -299,63 +319,65 @@ def draw_progress_bar(frame, progress, max_width=200, height=20):
     cv2.rectangle(frame, (x_start, y_start), (x_start + fill_width, y_start + height), (0, 128, 0), -1)
 
 def show_instructions(record_data_event):
-    def draw_page(lines):
-        frame = np.full((800, 1000, 3), 245, dtype=np.uint8)
-        y = 100
-        for line in lines:
-            text_size, _ = cv2.getTextSize(line, font, 1, 2)
-            x = (frame.shape[1] - text_size[0]) // 2
-            cv2.putText(frame, line, (x, y), font, 1, (0, 0, 0), 2)
-            y += 60
-        return frame
+    global exit_flag
 
     font = cv2.FONT_HERSHEY_SIMPLEX
 
+    def draw_page(lines):
+        frame = np.full((800, 1000, 3), 245, dtype=np.uint8)
+        y = 100
+        for line, color in lines:
+            text_size, _ = cv2.getTextSize(line, font, 1, 2)
+            x = (frame.shape[1] - text_size[0]) // 2
+            cv2.putText(frame, line, (x, y), font, 1, color, 2)
+            y += 60
+        return frame
+
     # Page 1
     page1 = [
-        "Welcome to the Symbionics Calibration Video!",
-        "",
-        "This process will help train the system to recognize",
-        "your unique brain signals for each hand gesture.",
-        "",
-        "Each hand action will be shown as a short video.",
-        "You will be asked to perform the same gesture.",
-        "",
-        "Try to imagine yourself opening/closing your hand",
-        "",
-        "Press ENTER to continue to the next page...",
-        "Press Q to quit at any time."
+        ("Welcome to the Symbionics Calibration Video!", (0, 0, 0)),
+        ("", (0, 0, 0)),
+        ("This process will help train the system to recognize", (0, 0, 0)),
+        ("your unique brain signals for each hand gesture.", (0, 0, 0)),
+        ("", (0, 0, 0)),
+        ("Each hand action will be shown as a short video.", (0, 0, 0)),
+        ("You will be asked to perform the same gesture.", (0, 0, 0)),
+        ("", (0, 0, 0)),
+        ("Try to imagine yourself opening/closing your hand", (0, 0, 0)),
+        ("", (0, 0, 0)),
+        ("Press ENTER to continue to the next page...", (0, 0, 0)),
+        ("Press Q to quit at any time.", (0, 0, 0))
     ]
 
-    # Page 2
+    # Page 2 (with red line)
     page2 = [
-        "Instruction Summary:",
-        "",
-        "1. Watch the hand gesture video.",
-        "2. When instructed in red, perform/imagine ",
-        "   yourself opening/closing your hand.",
-        "3. Hold the gesture for 10s until the next screen.",
-        "4. Open/relax your hand for 10s during the next video.",
-        "5. Repeat 3 and 4 until program ends.",
-        "",
-        "Press ENTER to continue to the next page...",
-        "Press Q to quit."
+        ("Instruction Summary:", (0, 0, 0)),
+        ("", (0, 0, 0)),
+        ("1. Watch the hand gesture video.", (0, 0, 0)),
+        ("2. When instructed in RED, ", (0, 0, 255)),  # RED
+        (" perform/imagine yourself opening/closing your hand.", (0, 0, 0)),
+        ("3. Hold the gesture for 10s until the next screen.", (0, 0, 0)),
+        ("4. Open/relax your hand for 10s during the next video.", (0, 0, 0)),
+        ("5. Repeat 3 and 4 until program ends.", (0, 0, 0)),
+        ("", (0, 0, 0)),
+        ("Press ENTER to continue to the next page...", (0, 0, 0)),
+        ("Press Q to quit.", (0, 0, 0))
     ]
 
     # Page 3
     page3 = [
-        "Reminder for the entire process:",
-        "",
-        " - Sit comfortably with your back straight.",
-        " - Keep your arm and hand relaxed on a surface.",
-        " - Minimize facial movement and eye blinks.",
-        " - Keep your eyes fixated on the screen.",
-        " - Avoid jaw clenching or unnecessary muscle tension.",
-        " - Motor imagery - Imagination is key!",
-        "",
-        "We're about to begin the session.",
-        "Press ENTER to begin.",
-        "Press Q to quit."
+        ("Reminder for the entire process:", (0, 0, 0)),
+        ("", (0, 0, 0)),
+        (" - Sit comfortably with your back straight.", (0, 0, 0)),
+        (" - Keep your arm and hand relaxed on a surface.", (0, 0, 0)),
+        (" - Minimize facial movement and eye blinks.", (0, 0, 0)),
+        (" - Keep your eyes fixated on the screen.", (0, 0, 0)),
+        (" - Avoid jaw clenching or unnecessary muscle tension.", (0, 0, 0)),
+        (" - Motor imagery - Imagination is key!", (0, 0, 0)),
+        ("", (0, 0, 0)),
+        ("We're about to begin the session.", (0, 0, 0)),
+        ("Press ENTER to begin.", (0, 0, 0)),
+        ("Press Q to quit.", (0, 0, 0))
     ]
 
     # --- Show Page 1 ---
@@ -365,7 +387,8 @@ def show_instructions(record_data_event):
         if key == ord('\r') or key == 13:
             break
         elif key == ord('q'):
-            exit(0)
+            exit_flag = True
+            return
 
     # --- Show Page 2 ---
     cv2.imshow("Display", draw_page(page2))
@@ -374,7 +397,8 @@ def show_instructions(record_data_event):
         if key == ord('\r') or key == 13:
             break
         elif key == ord('q'):
-            exit(0)
+            exit_flag = True
+            return
 
     # --- Show Page 3 ---
     cv2.imshow("Display", draw_page(page3))
@@ -385,6 +409,8 @@ def show_instructions(record_data_event):
             print(record_data_event)
             break
         elif key == ord('q'):
+            exit_flag = True
+            return
             exit_flag = True
             return
 
@@ -400,8 +426,13 @@ def get_gesture_code():
 
 def calibrate(record_data_event):
     global exit_flag
+    global exit_flag
     # --- MAIN LOOP ---
     show_instructions(record_data_event)
+    if exit_flag == True:
+        exit_flag = False
+        cv2.destroyAllWindows()
+        return
     if exit_flag == True:
         exit_flag = False
         cv2.destroyAllWindows()
@@ -416,11 +447,20 @@ def calibrate(record_data_event):
             exit_flag = False
             cv2.destroyAllWindows()
             return
+        if exit_flag == True:
+            exit_flag = False
+            cv2.destroyAllWindows()
+            return
         # if (time.time() - session_start > total_duration):
         #     break
         print("[BREAK] Taking a break...")
         break_timestamp = int(time.time() * 1000)  # 13-digit ms precision
+
         show_break(break_duration)
+        if exit_flag == True:
+            exit_flag = False
+            cv2.destroyAllWindows()
+            return
         if exit_flag == True:
             exit_flag = False
             cv2.destroyAllWindows()
@@ -433,8 +473,8 @@ def calibrate(record_data_event):
     count = 0
     cv2.destroyAllWindows()
 
-def main():
-    record = threading.Event()
-    calibrate(record)
-if __name__== "__main__":
-    main()
+# def main():
+#     record = threading.Event()
+#     calibrate(record)
+# if __name__== "__main__":
+#     main()
