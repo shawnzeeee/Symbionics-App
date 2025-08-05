@@ -23,7 +23,6 @@ play_order = []
 gesture_labels = {
    # "Handopen2.mp4": "Open Hand",
     "Handclose2.mp4": "Wait to Close Hand...",
-    "Handclose2.mp4": "Wait to Close Hand...",
 }
 
 cycle_duration = 8   
@@ -126,8 +125,6 @@ def play_video_then_countdown(path, gesture_index):
 
     # --- Show 3..2..1 countdown on the last frame ---
     skip_countdown = True  # Set to True to skip countdown and jump to GO
-    send_gesture_classification(2)
-
     send_gesture_classification(2)
 
     for i in (["GO"] if skip_countdown else [3, 2, 1, "GO"]):
@@ -411,8 +408,6 @@ def show_instructions(record_data_event):
         elif key == ord('q'):
             exit_flag = True
             return
-            exit_flag = True
-            return
 
 def send_gesture_classification(code):
     global gesture_code, gesture_code_lock
@@ -426,13 +421,8 @@ def get_gesture_code():
 
 def calibrate(record_data_event):
     global exit_flag
-    global exit_flag
     # --- MAIN LOOP ---
     show_instructions(record_data_event)
-    if exit_flag == True:
-        exit_flag = False
-        cv2.destroyAllWindows()
-        return
     if exit_flag == True:
         exit_flag = False
         cv2.destroyAllWindows()
@@ -447,20 +437,12 @@ def calibrate(record_data_event):
             exit_flag = False
             cv2.destroyAllWindows()
             return
-        if exit_flag == True:
-            exit_flag = False
-            cv2.destroyAllWindows()
-            return
         # if (time.time() - session_start > total_duration):
         #     break
         print("[BREAK] Taking a break...")
         break_timestamp = int(time.time() * 1000)  # 13-digit ms precision
 
         show_break(break_duration)
-        if exit_flag == True:
-            exit_flag = False
-            cv2.destroyAllWindows()
-            return
         if exit_flag == True:
             exit_flag = False
             cv2.destroyAllWindows()
