@@ -87,7 +87,7 @@ def begin_streaming_data(file_path, start_event, stop_event, record_data_event):
     try:
         with open(file_path, mode='w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Channel 1", "Channel 2", "Channel 3", "Channel 4", "Classification"])
+            writer.writerow(["Channel 1", "Channel 2", "Channel 3", "Channel 4", "Class"])
             wait_for_stream(timeout=10)
             inlet = connect_to_eeg_stream()
             start_event.set()
