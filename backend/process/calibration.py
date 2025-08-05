@@ -29,7 +29,7 @@ cycle_duration = 8
 break_duration = 12    
 #total_duration = 60 * 3
 total_duration = 10
-cycle_count = 1
+cycle_count = 6
 count = 0
 
 gesture_code = 0
