@@ -31,6 +31,11 @@ const routes = [
     name: "Calibration",
     component: () => import("../views/Calibration.vue"), // If you have a Vue file, use it instead
   },
+    {
+    path: "/calibratemodel",
+    name: "CalibrateModel",
+    component: () => import("../views/CalibrateModel.vue"), // If you have a Vue file, use it instead
+  },
 ];
 
 const router = createRouter({
