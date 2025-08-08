@@ -31,12 +31,15 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
-import { createAttentionThresholdSocket } from '@/ws'
+import { createAttentionThresholdSocket } from '../ws.js'
+import {trainSVM} from '../api.js'
 
 const router = useRouter();
 const progressHeight = ref(0); // 0 to 100
+const route = useRoute();
+const selectedFile = ref(route.params.filename)
 
 function increaseTop() {
   console.log('Increase Top');
@@ -58,8 +61,8 @@ function goBack() {
   router.back();
 }
 
-function loadModel() {
-  console.log('Load model');
+async function loadModel() {
+  console.log(selectedFile.value);
   // try{
   //   const response = await loadFileToGlove(selectedFile.value)
   //   console.log(response)
@@ -72,9 +75,17 @@ function loadModel() {
 }
       
 onMounted(async () => {
-  socket = await createAttentionThresholdSocket((data) => {
-    progressHeight.value = data
-  }, selectedFile.value)
+  console.log("Selected file:", selectedFile.value);
+  try{
+    response = await loadModel()
+  }
+  //Train SVM
+  //Wait for response
+  //Open websocket and read the real time classification
+
+  // socket = await createAttentionThresholdSocket((data) => {
+  //   progressHeight.value = data
+  // }, selectedFile.value)
 })
 
 </script>
