@@ -33,6 +33,7 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
+import { createAttentionThresholdSocket } from '@/ws'
 
 const router = useRouter();
 const progressHeight = ref(0); // 0 to 100
@@ -59,22 +60,25 @@ function goBack() {
 
 function loadModel() {
   console.log('Load model');
-  // Add your model loading logic here
+  // try{
+  //   const response = await loadFileToGlove(selectedFile.value)
+  //   console.log(response)
+  //   if (response.success == true){
+  //     router.push({ path: "Final" });
+  //   }
+  // }catch(error){
+  //   console.log(error)
+  // }
 }
+      
+onMounted(async () => {
+  socket = await createAttentionThresholdSocket((data) => {
+    progressHeight.value = data
+  }, selectedFile.value)
+})
 
-// Simulated backend update loop
-onMounted(() => {
-  setInterval(async () => {
-    try {
-      // Replace with actual fetch logic
-      const simulatedValue = Math.floor(Math.random() * 101); // 0–100
-      progressHeight.value = simulatedValue;
-    } catch (err) {
-      console.error('Failed to fetch progress:', err);
-    }
-  }, 1000); // Poll every 1 second
-});
 </script>
+
 
 <style scoped>
 /* No scoped styles needed since TailwindCSS is used */

@@ -128,6 +128,7 @@ function selectFile(file) {
 
 async function loadFile() {
   console.log("test1")
+  //API push SVM creation and start running, with selectedFile.value
   router.push({ name: "CalibrateModel"})
   // try{
   //   const response = await loadFileToGlove(selectedFile.value)
