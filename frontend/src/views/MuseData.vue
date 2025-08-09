@@ -53,7 +53,7 @@
             @click="loadFile"
             class="bg-sky-400 text-[#19596e] px-6 py-3 rounded hover:bg-sky-500 transition"
           >
-            Calibrate Model
+            Load
           </button>
           <button
             @click="goToNew"
@@ -127,17 +127,21 @@ function selectFile(file) {
 }
 
 async function loadFile() {
-  console.log("test1")
-  router.push({ name: "CalibrateModel"})
-  // try{
-  //   const response = await loadFileToGlove(selectedFile.value)
-  //   console.log(response)
-  //   if (response.success == true){
-  //     router.push({ path: "Final" });
-  //   }
-  // }catch(error){
-  //   console.log(error)
-  // }
+  // console.log("test1")
+  // router.push({ name: "CalibrateModel"})
+  try{
+    const response = await loadFileToGlove(selectedFile.value)
+    console.log(response)
+    if (response.success == true){
+      router.push({ path: "Final" });
+    }
+    if (response.message == "USB NOT FOUND")
+    {
+      alert("Failed to load file: NO USB CONNECTION FOUND");
+    }
+  }catch(error){
+    console.log(error)
+  }
 }
 
 function goToNew() {
