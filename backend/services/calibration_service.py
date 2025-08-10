@@ -5,7 +5,10 @@ from services.muselsl_stream_service import MuselslStreamService
 import csv
 import time
 import os
-import mmap
+
+from sklearn.svm import SVC
+import pandas as pd
+from .shared_instances import classifier_process
 class CalibrationService:
     def __init__(self, stream_service: MuselslStreamService):
         self.calibration_thread = None
@@ -65,6 +68,20 @@ class CalibrationService:
         if self.pylsl_start_event.is_set():
             await check_signal(websocket, self.pylsl_stop_event)
         return {"data": "Succesfully calibrated"}
+    
+    def train_classifier(self, filename):
+        response = classifier_process.train_classifier(filename)
+        return {"data": response}
+    
+    async def begin_checking_attention_threshold(self, websocket):
+        if self.pylsl_thread == None:
+            print("No pylsl thread")
+            return {"data": "No pylsl thread"}
+        while not self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
+            time.sleep(0.1)
+
+        if self.pylsl_start_event.is_set():
+            await classifier_process.classifier_loop(websocket, self.pylsl_stop_event)
     
     def disconnect_muse(self):
         muselsl_thread = self.stream_service.muselsl_thread

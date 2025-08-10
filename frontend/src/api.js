@@ -25,13 +25,13 @@ export async function beginPylslStream(file_name) {
   );
   return response.data;
 }
-export async function trainSVM(file_name){
+export async function trainSVM(file_name) {
   const response = await axios.get(
     `${API_BASE_URL}/train-svm?file_name=${file_name}`
   );
   return response.data;
 }
-export async function loadFileToGlove(file_name){
+export async function loadFileToGlove(file_name) {
   const response = await axios.get(
     `${API_BASE_URL}/load-file?filename=${file_name}`
   );

@@ -8,10 +8,8 @@ export async function createSignalQualitySocket(onMessage, fileName) {
   return socket;
 }
 
-export async function createAttentionThresholdSocket(onMessage, fileName) {
-  const socket = new WebSocket(
-    `ws://localhost:8000/api/attention-threshold?file_name=${encodeURIComponent(fileName)}`
-  );
+export async function createAttentionThresholdSocket(onMessage) {
+  const socket = new WebSocket(`ws://localhost:8000/api/attention-threshold`);
   socket.onmessage = (event) => {
     onMessage(JSON.parse(event.data));
   };

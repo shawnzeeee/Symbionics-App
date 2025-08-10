@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers.device import device_router
-from routers.stream import stream_router
-from routers.calibration import calibration_router
+from routers.device_router import device_router
+from routers.stream_router import stream_router
+from routers.calibration_router import calibration_router
 from routers.loadCsvFiles import router as file_router
 
 app = FastAPI()
