@@ -5,6 +5,7 @@ from services.muselsl_stream_service import MuselslStreamService
 import csv
 import time
 import os
+import asyncio
 
 from sklearn.svm import SVC
 import pandas as pd
@@ -63,7 +64,9 @@ class CalibrationService:
             return {"data": "No pylsl thread"}
 
         while not self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
-            time.sleep(0.1)
+            # time.sleep(0.1)
+            await asyncio.sleep(0.1)   # <-- was time.sleep
+
 
         if self.pylsl_start_event.is_set():
             await check_signal(websocket, self.pylsl_stop_event)
@@ -78,7 +81,9 @@ class CalibrationService:
             print("No pylsl thread")
             return {"data": "No pylsl thread"}
         while not self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
-            time.sleep(0.1)
+            #time.sleep(0.1)
+            await asyncio.sleep(0.1)   # <-- was time.sleep
+
 
         if self.pylsl_start_event.is_set():
             await classifier_process.classifier_loop(websocket, self.pylsl_stop_event)
@@ -96,3 +101,34 @@ class CalibrationService:
             muselsl_thread.join()
         print("Pylsl and muselsl terminated")
         return {"data": "Pylsl and muselsl terminated"}
+
+# calibration_service.py (module scope, not inside the class!)
+import asyncio
+
+# Shared adjustment state (defaults)
+_adjust = {"adder": 15, "subtractor": 15}
+_adjust_lock = asyncio.Lock()
+
+def _clamp(v, lo=0, hi=220):
+    try:
+        v = int(v)
+    except Exception:
+        return lo
+    return max(lo, min(hi, v))
+
+async def set_attention_adjustments(adder=None, subtractor=None):
+    async with _adjust_lock:
+        if adder is not None:
+            _adjust["adder"] = _clamp(adder)
+        if subtractor is not None:
+            _adjust["subtractor"] = _clamp(subtractor)
+
+async def get_attention_adjustments():
+    async with _adjust_lock:
+        return _adjust["adder"], _adjust["subtractor"]
+
+def apply_attention_adjustments(base_value: float, lo=0, hi=220) -> int:
+    """Fast read—OK without lock since we’re just reading ints."""
+    a = _adjust["adder"]
+    s = _adjust["subtractor"]
+    return _clamp(int(base_value) + a - s, lo, hi)

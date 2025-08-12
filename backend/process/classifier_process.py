@@ -2,7 +2,7 @@ import time
 from sklearn.svm import SVC
 import os
 import pandas as pd
-
+import asyncio, json, numpy as np
 
 from .feature_extraction import *
 from .filter import *
@@ -55,6 +55,7 @@ class ClassifierProcess:
             return "File Not Found"
         # Load the CSV as a DataFrame
         df = pd.read_csv(file_path)
+        # print("CSV columns:", list(df.columns))
         attention_indices = df.index[df['Class'] == 2].tolist()
         idle_indices = df.index[df['Class'] == 1].tolist()
 
@@ -74,11 +75,13 @@ class ClassifierProcess:
             attention_threshold = 0
             attention_adder = 15
             attention_subtractor = 15
+
             while not stop_event.is_set():
+                #pull a window
                 data_array = get_eeg_buffer()
                 #data_array = np.zeros(window_size*4, dtype=np.float32)
                 if len(data_array) < self.window_size:
-                    time.sleep(0.1)
+                    await asyncio.sleep(0.05)
                     continue
                 if len(data_array) == self.window_size*4:
                     eeg_window = data_array.reshape(self.window_size, 4)
@@ -108,8 +111,6 @@ class ClassifierProcess:
                     #     attention_adder = data.get("attention_adder", attention_adder)
                     # except asyncio.TimeoutError:
                     #     pass  # No new message, just continue
-                    attention_subtractor = 5
-                    attention_adder = 5
                     adder = -1 * attention_subtractor
                     if predicted_class == 2:
                         adder = attention_adder
@@ -122,10 +123,14 @@ class ClassifierProcess:
 
                     await websocket.send_json({
                         "gesture": gesture,
-                        "attention_threshold": attention_threshold
+                        "attention_threshold": attention_threshold,
+                        "attention_subtractor -": attention_subtractor,
+                        "attention_adder": attention_adder
                     })
+                
                     #print(f"Predicted class: {gesture}      {attention_threshold}")  
-                    time.sleep(0.1)      
+                    await asyncio.sleep(0.05)  # pacing
+                    #time.sleep(0.1)      
             print("Exiting classification")
             return
         except KeyboardInterrupt:
