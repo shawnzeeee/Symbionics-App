@@ -3,58 +3,69 @@
     <h1 class="text-4xl text-[#075776] mt-10">Calibrate the model</h1>
     <!-- Meter -->
     <div class="relative flex items-center justify-center mt-10">
-      <!-- Blue Column -->
-      <div class="relative w-32 h-[500px] bg-[#4c89a3] overflow-hidden">
-        <!-- Dynamic Loading Bar -->
-        <div
-          class="absolute left-0 w-full bg-[#58c2ff] transition-all duration-300 z-0 rounded"
-          :style="{ bottom: '0px', height: progressHeight + '%' }"
-        ></div>
-        <!-- Midline marker -->
-        <div
-          class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-white/80 z-10 pointer-events-none transform"
-          aria-hidden="true"
-        ></div>
-      </div>
-      <!-- Top label -->
-      <div
-        class="absolute top-1 left-0 right-0 text-center text-white text-sm font-medium z-10 pointer-events-none drop-shadow"
-      >
-        Close
-      </div>
+      <!-- Bar + outside labels -->
+      <div class="flex flex-col items-center">
+        <!-- Close (top, outside) -->
+        <span class="text-[#075776] text-base font-semibold drop-shadow mb-1">Close</span>
 
-      <!-- Bottom label -->
-      <div
-        class="absolute bottom-1 left-0 right-0 text-center text-white text-sm font-medium z-10 pointer-events-none drop-shadow"
-      >
-        Open
+        <!-- Blue Column -->
+        <div class="relative w-32 h-[500px] bg-[#4c89a3] overflow-hidden">
+          <!-- Dynamic Loading Bar -->
+          <div
+            class="absolute left-0 w-full bg-[#58c2ff] transition-all duration-300 z-0 rounded"
+            :style="{ bottom: '0px', height: progressHeight + '%' }"
+          ></div>
+
+          <!-- Midline marker -->
+          <div
+            class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-white/80 z-10 pointer-events-none"
+            aria-hidden="true"
+          ></div>
+        </div>
+
+        <!-- Open (bottom, outside) -->
+        <span class="text-[#075776] text-base font-semibold drop-shadow mt-1">Open</span>
       </div>
 
       <!-- Control Buttons -->
       <div class="flex flex-col justify-between h-[500px] ml-4 z-10">
+        <!-- Close sensitivity -->
         <div class="flex flex-col gap-2">
           <span class="text-[#19596e] text-sm">Close sensitivity</span>
-          <button @click="increaseTop" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer">
-            +
-          </button>
-          <button @click="decreaseTop" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
-          >
-            -
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              @click="decreaseTop"
+              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
+              aria-label="Decrease close sensitivity"
+            >-</button>
+            <button
+              @click="increaseTop"
+              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
+              aria-label="Increase close sensitivity"
+            >+</button>
+          </div>
         </div>
+
+        <!-- Open sensitivity -->
         <div class="flex flex-col gap-2">
           <span class="text-[#19596e] text-sm">Open sensitivity</span>
-          <button @click="increaseBottom" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
-          >
-            +
-          </button>
-          <button @click="decreaseBottom" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
-          >
-            -
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              @click="decreaseBottom"
+              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
+              aria-label="Decrease open sensitivity"
+            >-</button>
+            <button
+              @click="increaseBottom"
+              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
+              aria-label="Increase open sensitivity"
+            >+</button>
+          </div>
         </div>
       </div>
+
     </div>
+
     
     <!-- Live readouts -->
     <div class="mt-6 flex gap-4 text-[#19596e]">
@@ -72,7 +83,7 @@
     </button>
     <div class="absolute bottom-5 right-5 flex flex-col items-end space-y-3 z-10">
       <button
-        @click="saveSettings"
+        @click="saveSettings()"
         class="bg-white text-[#19596e] border border-[#19596e] px-6 py-2 text-lg rounded hover:bg-gray-100 transition cursor-pointer"
       >
         Save Settings
@@ -92,9 +103,8 @@
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted } from "vue";
 import { createAttentionThresholdSocket } from "../ws.js";
-import { trainSVM, beginPylslStreamNoFileWrite, loadFileToGlove, endMusePylslStream, } from "../api.js";
+import { trainSVM, beginPylslStreamNoFileWrite, loadFileToGlove, endMusePylslStream, updateCSV} from "../api.js";
 import { isNavigationFailure, NavigationFailureType } from 'vue-router';
-
 
 const router = useRouter();
 const progressHeight = ref(0); // 0 to 100
@@ -146,6 +156,17 @@ function goBack() {
   router.back();
 }
 
+function saveSettings() {
+  // use .value from refs
+  const adder = Number(attention_adder.value);
+  const subtractor = Number(attention_subtractor.value);
+  const fname = String(selectedFile.value || "");
+
+  updateCSV(fname, adder, subtractor);
+  console.log("csv updated")
+}
+
+
 //helper function to convert 0-220 to 0-100 for display on the bar
 const threshold = ref(0); // <-- add this
 
@@ -196,6 +217,8 @@ onMounted(async () => {
 
     socket = createAttentionThresholdSocket((data) => {
       console.log("WS message: ", data);
+
+      //this function converts WS message data to int and sets the height of the bar in the html
       getDataNumber(data)
     });
 

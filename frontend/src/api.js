@@ -19,6 +19,13 @@ export async function connectMuse(mac_address) {
   return response.data;
 }
 
+export async function updateCSV(filename, adder, subtractor) {
+  const response = await axios.get(
+    `${API_BASE_URL}/update-csv?filename=${filename}adder=${adder}subtractor=${subtractor}`
+  );
+  return response.data;
+}
+
 export async function beginPylslStream(file_name) {
   const response = await axios.get(
     `${API_BASE_URL}/begin-pylsl-stream?file_name=${file_name}`

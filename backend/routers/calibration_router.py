@@ -6,6 +6,10 @@ from fastapi import WebSocket, WebSocketDisconnect
 
 calibration_router = APIRouter()
 
+@calibration_router.get("/update-csv")
+def updateCSV(file_name: str):
+    return calibration_service.updateCSV(file_name)
+
 @calibration_router.get("/begin-pylsl-stream")
 def begin_pylsl_stream(file_name: str):
     return calibration_service.begin_pylsl_stream(file_name)

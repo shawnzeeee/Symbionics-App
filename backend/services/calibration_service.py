@@ -20,6 +20,17 @@ class CalibrationService:
         self.record_data_event = threading.Event()
         self.stream_service = stream_service
 
+    #updating CSV function with 2 extra parameters
+    def updateCSV(filename, adder, subtractor):
+        # Build the path in the SavedData folder
+        if not file_name.endswith(".csv"):
+            file_name = file_name + ".csv"
+        save_dir = os.path.join(os.getcwd(), "SavedData")
+        os.makedirs(save_dir, exist_ok=True)
+        file_path = os.path.join(save_dir, file_name)
+        with open(file_path, mode='a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            
     #for gathering eeg data, writing to a csv file
     def begin_pylsl_stream(self, file_name):
         # Build the path in the SavedData folder
