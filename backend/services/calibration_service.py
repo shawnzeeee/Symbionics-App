@@ -2,7 +2,6 @@ import threading
 from process.calibration import calibrate
 from process.muse_stream import begin_streaming_data, check_signal, end_muse_stream
 from services.muselsl_stream_service import MuselslStreamService
-import csv
 import time
 import os
 import asyncio
@@ -20,17 +19,31 @@ class CalibrationService:
         self.record_data_event = threading.Event()
         self.stream_service = stream_service
 
-    #updating CSV function with 2 extra parameters
+    # function to append "Calnum", then adder and subtractor to CSV for calibration purposes
     def updateCSV(filename, adder, subtractor):
         # Build the path in the SavedData folder
-        if not file_name.endswith(".csv"):
-            file_name = file_name + ".csv"
-        save_dir = os.path.join(os.getcwd(), "SavedData")
+        if not filename.endswith(".csv"):
+            filename = filename + ".csv"
+        save_dir = os.path.join(os.getcwd(), "backend", "SavedData")
         os.makedirs(save_dir, exist_ok=True)
-        file_path = os.path.join(save_dir, file_name)
-        with open(file_path, mode='a', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            
+        csv_path = os.path.join(save_dir, filename)
+        print(csv_path)
+
+        # Load the CSV
+        df = pd.read_csv(csv_path)
+        
+        # If column 6 doesn't exist yet, create it
+        if len(df.columns) < 6:
+            df['CalNum'] = ""
+        
+        # Set first three rows
+        df.iloc[0, 5] = adder
+        df.iloc[1, 5] = subtractor
+        
+        # Save back to CSV
+        df.to_csv(csv_path, index=False)
+        return df
+
     #for gathering eeg data, writing to a csv file
     def begin_pylsl_stream(self, file_name):
         # Build the path in the SavedData folder
@@ -39,6 +52,8 @@ class CalibrationService:
         save_dir = os.path.join(os.getcwd(), "SavedData")
         os.makedirs(save_dir, exist_ok=True)
         file_path = os.path.join(save_dir, file_name)
+        print(file_path)
+
         muselsl_thread = self.stream_service.muselsl_thread
         muselsl_start_event = self.stream_service.muselsl_start_event
         if muselsl_thread == None:
