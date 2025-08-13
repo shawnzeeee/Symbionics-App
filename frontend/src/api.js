@@ -21,7 +21,7 @@ export async function connectMuse(mac_address) {
 
 export async function updateCSV(filename, adder, subtractor) {
   const response = await axios.get(
-    `${API_BASE_URL}/update-csv?filename=${filename}adder=${adder}subtractor=${subtractor}`
+    `${API_BASE_URL}/update-csv?filename=${filename}&adder=${adder}&subtractor=${subtractor}`
   );
   return response.data;
 }

@@ -33,17 +33,23 @@
         <div class="flex flex-col gap-2">
           <span class="text-[#19596e] text-sm">Close sensitivity</span>
           <div class="flex items-center gap-2">
-            <button
-              @click="decreaseTop"
-              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
-              aria-label="Decrease close sensitivity"
-            >-</button>
-            <button
-              @click="increaseTop"
-              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
-              aria-label="Increase close sensitivity"
-            >+</button>
+          <button
+            @click="decreaseTop"
+            :disabled="attention_adder <= 1"
+            class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Decrease close sensitivity"
+          >-</button>
+          <button
+            @click="increaseTop"
+            :disabled="attention_adder >= 40"
+            class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Increase close sensitivity"
+          >+</button>
           </div>
+        <!-- Adder value -->
+        <div class="bg-white rounded px-3 py-1 shadow text-[#19596e]">
+          Value: <b>{{ attention_adder }}</b>
+        </div>
         </div>
 
         <!-- Open sensitivity -->
@@ -52,28 +58,26 @@
           <div class="flex items-center gap-2">
             <button
               @click="decreaseBottom"
-              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
+              :disabled="attention_subtractor <= 1"
+              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Decrease open sensitivity"
             >-</button>
             <button
               @click="increaseBottom"
-              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
+              :disabled="attention_subtractor >= 40"
+              class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Increase open sensitivity"
             >+</button>
           </div>
+        <!-- Subtractor value -->
+        <div class="bg-white rounded px-3 py-1 shadow text-[#19596e]">
+          Value: <b>{{ attention_subtractor }}</b>
+        </div>
         </div>
       </div>
 
     </div>
-
-    
-    <!-- Live readouts -->
-    <div class="mt-6 flex gap-4 text-[#19596e]">
-      <div class="bg-white rounded px-3 py-2 shadow">Threshold: <b>{{ threshold }}</b></div>
-      <div class="bg-white rounded px-3 py-2 shadow">Adder: <b>{{ attention_adder }}</b></div>
-      <div class="bg-white rounded px-3 py-2 shadow">Subtractor: <b>{{ attention_subtractor }}</b></div>
-    </div>
-    
+  
     <!-- Navigation Buttons -->
     <button
       @click="goBack"
@@ -163,7 +167,7 @@ function saveSettings() {
   const fname = String(selectedFile.value || "");
 
   updateCSV(fname, adder, subtractor);
-  console.log("csv updated")
+  console.log("csv updated with", attention_adder.value, " and ", attention_subtractor.value)
 }
 
 
