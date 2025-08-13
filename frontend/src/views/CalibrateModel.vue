@@ -102,6 +102,7 @@ function decreaseBottom() {
   sendAttentionValues();
 }
 
+//variables to send to backend via websocket to change the script dynamically
 function sendAttentionValues() {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({
