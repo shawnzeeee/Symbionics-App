@@ -126,6 +126,12 @@ class CalibrationService:
         if self.pylsl_start_event.is_set():
             await classifier_process.classifier_loop(websocket, self.pylsl_stop_event)
     
+    async def set_attention_adjustments(self, adder=None, subtractor=None):
+        return classifier_process.set_attention_adjustments(adder, subtractor)
+
+    async def get_attention_adjustments(self):
+        return classifier_process.get_attention_adjustments()
+    
     def disconnect_muse(self):
         muselsl_thread = self.stream_service.muselsl_thread
         muselsl_start_event = self.stream_service.muselsl_start_event

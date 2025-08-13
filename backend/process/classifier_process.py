@@ -3,6 +3,7 @@ from sklearn.svm import SVC
 import os
 import pandas as pd
 import asyncio, json, numpy as np
+import threading
 
 from .feature_extraction import *
 from .filter import *
@@ -20,6 +21,12 @@ class ClassifierProcess:
 
         self.classifier = SVC(kernel='linear', probability=True)
         self.scaler = StandardScaler()
+        
+        #--- live adjustments with a lock ---
+        self._attention_adder = 15
+        self._attention_subtractor = 15
+        self._adj_lock = threading.Lock()
+
     def extract_feature_vector(self,indices, df, window_size, classification, num_windows=5, filter_funcs=[], feature_funcs=[]):
         processed_data = []
         for start_idx in indices:
@@ -73,8 +80,6 @@ class ClassifierProcess:
     async def classifier_loop(self, websocket, stop_event):
         try:
             attention_threshold = 0
-            attention_adder = 15
-            attention_subtractor = 15
 
             while not stop_event.is_set():
                 #pull a window
@@ -83,6 +88,7 @@ class ClassifierProcess:
                 if len(data_array) < self.window_size:
                     await asyncio.sleep(0.05)
                     continue
+
                 if len(data_array) == self.window_size*4:
                     eeg_window = data_array.reshape(self.window_size, 4)
                     features = []
@@ -101,8 +107,8 @@ class ClassifierProcess:
                     if not np.isfinite(features).all():
                         print("NANANANANANANNANANAN")
                         continue
-                    features_scaled = self.scaler.transform(features)
 
+                    features_scaled = self.scaler.transform(features)
                     predicted_class = self.classifier.predict(features_scaled)[0]
                     
                     # try:
@@ -111,6 +117,10 @@ class ClassifierProcess:
                     #     attention_adder = data.get("attention_adder", attention_adder)
                     # except asyncio.TimeoutError:
                     #     pass  # No new message, just continue
+
+                    # --- READ LIVE KNOBS ---
+                    attention_adder, attention_subtractor = self.get_attention_adjustments()
+
                     adder = -1 * attention_subtractor
                     if predicted_class == 2:
                         adder = attention_adder
@@ -124,8 +134,8 @@ class ClassifierProcess:
                     await websocket.send_json({
                         "gesture": gesture,
                         "attention_threshold": attention_threshold,
-                        "attention_subtractor -": attention_subtractor,
-                        "attention_adder": attention_adder
+                        "attention_adder": attention_adder,
+                        "attention_subtractor": attention_subtractor
                     })
                 
                     #print(f"Predicted class: {gesture}      {attention_threshold}")  
@@ -135,3 +145,17 @@ class ClassifierProcess:
             return
         except KeyboardInterrupt:
             print("Exiting...")
+    
+    # --- setter and getter for adjustments
+    def set_attention_adjustments(self, adder=None, subtractor=None):
+        """Set live knobs (clamped). Returns (adder, subtractor)."""
+        with self._adj_lock:
+            if adder is not None:
+                self._attention_adder = int(max(-100, min(100, adder)))
+            if subtractor is not None:
+                self._attention_subtractor = int(max(-100, min(100, subtractor)))
+            return self._attention_adder, self._attention_subtractor
+
+    def get_attention_adjustments(self):
+        with self._adj_lock:
+            return self._attention_adder, self._attention_subtractor

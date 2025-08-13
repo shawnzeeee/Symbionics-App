@@ -10,6 +10,24 @@
           class="absolute left-0 w-full bg-[#58c2ff] transition-all duration-300 z-0 rounded"
           :style="{ bottom: '0px', height: progressHeight + '%' }"
         ></div>
+        <!-- Midline marker -->
+        <div
+          class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-white/80 z-10 pointer-events-none transform"
+          aria-hidden="true"
+        ></div>
+      </div>
+      <!-- Top label -->
+      <div
+        class="absolute top-1 left-0 right-0 text-center text-white text-sm font-medium z-10 pointer-events-none drop-shadow"
+      >
+        Close
+      </div>
+
+      <!-- Bottom label -->
+      <div
+        class="absolute bottom-1 left-0 right-0 text-center text-white text-sm font-medium z-10 pointer-events-none drop-shadow"
+      >
+        Open
       </div>
 
       <!-- Control Buttons -->
@@ -52,12 +70,21 @@
     >
       Back
     </button>
-    <button
-      @click="loadModel"
-      class="absolute bottom-5 right-5 bg-[#19596e] text-white px-6 py-2 text-lg rounded hover:bg-[#144452] transition z-10"
-    >
-      Load
-    </button>
+    <div class="absolute bottom-5 right-5 flex flex-col items-end space-y-3 z-10">
+      <button
+        @click="saveSettings"
+        class="bg-white text-[#19596e] border border-[#19596e] px-6 py-2 text-lg rounded hover:bg-gray-100 transition cursor-pointer"
+      >
+        Save Settings
+      </button>
+
+      <button
+        @click="loadModel"
+        class="bg-[#19596e] text-white px-6 py-2 text-lg rounded hover:bg-[#144452] transition cursor-pointer"
+      >
+        Load to Glove
+      </button>
+    </div>
   </div>
 </template>
 
