@@ -126,10 +126,7 @@ async function beginDataRecording() {
   try {
     const response = await beginCalibration();
     console.log(response);
-    // After 30 seconds, swap to the second button
-    setTimeout(() => {
-    showFirstButton.value = false;
-  }, 30000);
+    showFirstButton.value = false
   } catch (error) {
     console.log(error)
   }

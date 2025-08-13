@@ -20,7 +20,35 @@ class CalibrationService:
         self.record_data_event = threading.Event()
         self.stream_service = stream_service
 
+    #for gathering eeg data, writing to a csv file
     def begin_pylsl_stream(self, file_name):
+        # Build the path in the SavedData folder
+        if not file_name.endswith(".csv"):
+            file_name = file_name + ".csv"
+        save_dir = os.path.join(os.getcwd(), "SavedData")
+        os.makedirs(save_dir, exist_ok=True)
+        file_path = os.path.join(save_dir, file_name)
+        muselsl_thread = self.stream_service.muselsl_thread
+        muselsl_start_event = self.stream_service.muselsl_start_event
+        if muselsl_thread == None:
+            print("Muselsl not running")
+            return {"data": "Muselsl not running"}
+        
+        if muselsl_thread.is_alive() and muselsl_start_event.is_set():
+            self.pylsl_start_event.clear()
+            self.pylsl_stop_event.clear()
+            self.record_data_event.clear()
+            self.pylsl_thread = threading.Thread(target=begin_streaming_data, args=(file_path,self.pylsl_start_event, self.pylsl_stop_event, self.record_data_event))
+            self.pylsl_thread.start()
+
+            while not self.pylsl_start_event.is_set() and self.pylsl_thread.is_alive():
+                time.sleep(0.1)
+            return {"data": "Succesfully start pylsl stream"}
+        
+        return {"data": "There was error connecting to muselsl stream"}
+    
+    #for calibrate model, where we don't need to write to a file
+    def begin_pylsl_stream_no_file_write(self, file_name):
         # Build the path in the SavedData folder
         if not file_name.endswith(".csv"):
             file_name = file_name + ".csv"

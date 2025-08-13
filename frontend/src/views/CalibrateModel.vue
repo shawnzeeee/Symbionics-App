@@ -65,7 +65,7 @@
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted } from "vue";
 import { createAttentionThresholdSocket } from "../ws.js";
-import { trainSVM, beginPylslStream, loadFileToGlove, endMusePylslStream, } from "../api.js";
+import { trainSVM, beginPylslStreamNoFileWrite, loadFileToGlove, endMusePylslStream, } from "../api.js";
 import { isNavigationFailure, NavigationFailureType } from 'vue-router';
 
 
@@ -163,8 +163,8 @@ onMounted(async () => {
     const training_response = await trainSVM(selectedFile.value);
     console.log("trainSVM:", training_response);
 
-    const stream_response =await beginPylslStream(selectedFile.value);
-    console.log("beginPylslStream:", stream_response);
+    const stream_response =await beginPylslStreamNoFileWrite(selectedFile.value);
+    console.log("beginPylslStreamNoFileWrite:", stream_response);
 
     socket = createAttentionThresholdSocket((data) => {
       console.log("WS message: ", data);

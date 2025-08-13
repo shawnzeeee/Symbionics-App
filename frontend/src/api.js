@@ -26,6 +26,13 @@ export async function beginPylslStream(file_name) {
   return response.data;
 }
 
+export async function beginPylslStreamNoFileWrite(file_name) {
+  const response = await axios.get(
+    `${API_BASE_URL}/begin-pylsl-stream-no-file-write?file_name=${file_name}`
+  );
+  return response.data;
+}
+
 export async function endMusePylslStream() {
   const response = await axios.get(
     `${API_BASE_URL}/end-muse-pylsl-stream`

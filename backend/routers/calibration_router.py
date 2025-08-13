@@ -10,6 +10,10 @@ calibration_router = APIRouter()
 def begin_pylsl_stream(file_name: str):
     return calibration_service.begin_pylsl_stream(file_name)
 
+@calibration_router.get("/begin-pylsl-stream-no-file-write")
+def begin_pylsl_stream_no_file_write(file_name: str):
+    return calibration_service.begin_pylsl_stream_no_file_write(file_name)
+
 @calibration_router.get("/end-muse-pylsl-stream")
 def end_muse_pylsl_stream():
     return calibration_service.end_muse_pylsl_stream()
