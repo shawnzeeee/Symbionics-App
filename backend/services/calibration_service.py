@@ -1,6 +1,6 @@
 import threading
 from process.calibration import calibrate
-from process.muse_stream import begin_streaming_data, check_signal
+from process.muse_stream import begin_streaming_data, check_signal, end_muse_stream
 from services.muselsl_stream_service import MuselslStreamService
 import csv
 import time
@@ -24,7 +24,7 @@ class CalibrationService:
         # Build the path in the SavedData folder
         if not file_name.endswith(".csv"):
             file_name = file_name + ".csv"
-
+        file_name = "test_data.csv"
         save_dir = os.path.join(os.getcwd(), "SavedData")
         os.makedirs(save_dir, exist_ok=True)
         file_path = os.path.join(save_dir, file_name)
@@ -47,6 +47,16 @@ class CalibrationService:
         
         return {"data": "There was error connecting to muselsl stream"}
     
+    def end_muse_pylsl_stream(self):
+        #stop pylsl thread
+        self.pylsl_stop_event.set()
+        if self.pylsl_thread is not None:
+            self.pylsl_thread.join()
+
+        #stop muselsl thread
+        end_muse_stream()
+        return {"data": "muselsl, pylsl thread ended"}
+
     def begin_calibration(self):
         muselsl_thread = self.stream_service.muselsl_thread
         muselsl_start_event = self.stream_service.muselsl_start_event

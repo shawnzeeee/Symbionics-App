@@ -22,8 +22,7 @@ def get_devices_list():
         return muses
     finally:
         asyncio.set_event_loop(None)
-    
-    
+
 def start_muse_stream(MAC_ADDRESS, start_event, stop_event):
     print("[INFO] Starting muselsl stream...")
     try:

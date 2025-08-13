@@ -22,13 +22,13 @@
     <div class="absolute bottom-6 w-full flex justify-between px-6">
       <button 
         @click="goHome"
-        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition">
+        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition cursor-pointer">
         Back to Home
       </button>
 
       <button 
         @click="goToMuseData"
-        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition">
+        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition cursor-pointer">
         Load New Data
       </button>
     </div>

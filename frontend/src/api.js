@@ -25,6 +25,14 @@ export async function beginPylslStream(file_name) {
   );
   return response.data;
 }
+
+export async function endMusePylslStream() {
+  const response = await axios.get(
+    `${API_BASE_URL}/end-muse-pylsl-stream`
+  );
+  return response.data;
+}
+
 export async function trainSVM(file_name) {
   const response = await axios.get(
     `${API_BASE_URL}/train-svm?file_name=${file_name}`

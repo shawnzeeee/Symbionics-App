@@ -15,7 +15,7 @@
     <!-- Start Button -->
     <button 
       @click="goToConnectMuse" 
-      class="absolute bottom-8 right-8 bg-[#19596e] text-white text-base px-6 py-3 rounded-lg shadow-md hover:bg-[#144452] transition-colors"
+      class="absolute bottom-8 right-8 bg-[#19596e] text-white text-base px-6 py-3 rounded-lg shadow-md hover:bg-[#144452] transition-colors cursor-pointer"
     >
       Start
     </button>

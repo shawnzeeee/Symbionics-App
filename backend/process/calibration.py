@@ -26,7 +26,7 @@ gesture_labels = {
 }
 
 cycle_duration = 8
-break_duration = 12
+break_duration = 8
 total_duration = 60 * 2
 # total_duration = 
 cycle_count = 7
@@ -36,6 +36,9 @@ exit_flag = False
 
 gesture_code = 0
 gesture_code_lock = threading.Lock()
+# Put these near your other config values
+PREROLL_S = 2.0     # freeze on first frame before instructions show
+POST_HOLD_S = 6.0   # freeze on last frame after playback
 
 # --- HELPER FUNCTIONS ---
 def get_least_played_video():
@@ -47,234 +50,498 @@ def get_least_played_video():
 
 previous_class = 0
 
+def play_balanced_videos_for(_duration=None):
+    """
+    Play exactly ONE video (with all existing overlays handled inside
+    play_video_then_countdown), then return so the break runs next.
+    """
+    video_path = get_least_played_video()
+    gesture_index = video_list.index(video_path)
+
+    # record what played and when (kept from your original behavior)
+    timestamp = int(time.time() * 1000)  # ms
+    play_order.append((video_path, timestamp))
+    # print(f"[PLAY] {os.path.basename(video_path)} (index: {gesture_index + 1}) at {timestamp}")
+
+    # Plays the clip once (first-frame freeze, red text, playback, last-frame hold)
+    play_video_then_countdown(video_path, gesture_index)
+
+    # Done after a single clip
+    return
+
 def play_video_then_countdown(path, gesture_index):
+    """
+    CLOSE phase:
+    - Freeze on first frame (title only) for PREROLL_S
+    - Show red 'Close your hand!' and play video
+    - Freeze on final frame (same overlays) for POST_HOLD_S
+    """
     global exit_flag
+
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         print(f"Cannot open: {path}")
         return
 
-    frame_rate = 60
-    last_frame = None
+    # fps/delay
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    if not fps or fps <= 1e-3:
+        fps = 30.0
+    delay_ms = int(1000.0 / fps)
+
+    # window once
     cv2.namedWindow("Display", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Display", 720, 720)
-    
-    # --- Play the video and remember the last frame ---
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        last_frame = frame.copy()
-        
-        resized_frame = cv2.resize(frame, (720, 720))
 
-        # Draw custom title
-        filename = os.path.basename(path)
-        label = gesture_labels.get(filename, filename)
-        # --- Draw centered label with box ---
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 1.2
-        thickness = 3
-        text_size, baseline = cv2.getTextSize(label, font, font_scale, thickness)
-        text_width, text_height = text_size
-
-        # Center position
-        center_x = resized_frame.shape[1] // 2
-        text_x = center_x - text_width // 2
-        text_y = 60  # distance from top
-
-        # Draw label text
-        cv2.putText(resized_frame, label, (text_x, text_y), font,
-                    font_scale, (0, 0, 0), thickness)
-        
-        # Calculate progress bar based on cycle count
-        global count, cycle_count
-        progress = min(count / cycle_count, 1.0) if cycle_count else 0
-        draw_progress_bar(resized_frame, progress)
-        
-        cv2.imshow("Display", resized_frame)
-        last_frame = resized_frame.copy()
-
-        if cv2.waitKey(int(1500 // frame_rate)) & 0xFF == ord('q'):
-            exit_flag = True
-            return
-    
-            exit_flag = True
-            return
-    
-    cap.release()
-
-    if last_frame is None:
-        print("Error: No valid frame captured.")
+    # read FIRST frame
+    ret, frame = cap.read()
+    if not ret:
+        cap.release()
+        print(f"Error: No frames in {path}")
         return
+    first_frame = cv2.resize(frame, (720, 720))
 
-    h, w, _ = last_frame.shape
-    x = int(w * 0.75) - 30  # 75% across width
-    y = int(h / 2) + 20     # Vertically centered
+    # title/label
+    filename = os.path.basename(path)
+    label = gesture_labels.get(filename, filename)  # e.g., "Wait to Close Hand..."
 
-    # --- Show 3..2..1 countdown on the last frame ---
-    skip_countdown = True  # Set to True to skip countdown and jump to GO
-    send_gesture_classification(2)
+    # ---- 1) FREEZE on first frame (TITLE ONLY) ----
+    t0 = time.time()
+    while time.time() - t0 < PREROLL_S:
+        overlay = first_frame.copy()
 
-    for i in (["GO"] if skip_countdown else [3, 2, 1, "GO"]):
-        overlay = last_frame.copy()
-
-        # --- Title box (reuse your existing title drawing code if needed) ---
+        # black title at top center
         font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale_title = 1.2
-        thickness_title = 3
-        text_size_title, baseline_title = cv2.getTextSize(label, font, font_scale_title, thickness_title)
-        text_width_title, text_height_title = text_size_title
-        center_x = overlay.shape[1] // 2
-        text_x_title = center_x - text_width_title // 2
-        text_y_title = 60
+        text_size, _ = cv2.getTextSize(label, font, 1.2, 3)
+        text_x = (overlay.shape[1] - text_size[0]) // 2
+        cv2.putText(overlay, label, (text_x, 60), font, 1.2, (0, 0, 0), 3)
 
-        top_left_title = (text_x_title - 10, text_y_title - text_height_title - 10)
-        bottom_right_title = (text_x_title + text_width_title + 10, text_y_title + baseline_title + 10)
-        cv2.putText(overlay, label, (text_x_title, text_y_title), font, font_scale_title, (0, 0, 0), thickness_title)
-
-        # --- Countdown just below title ---
-        font_scale_countdown = 2.0
-        thickness_countdown = 4
-        countdown_text = str(i)
-        text_size, baseline = cv2.getTextSize(countdown_text, font, font_scale_countdown, thickness_countdown)
-        text_width, text_height = text_size
-
-        text_y = text_y_title + 80  # adjust spacing between title and countdown
-        text_x = center_x - text_width // 2
-
-        top_left = (text_x - 10, text_y - text_height - 10)
-        bottom_right = (text_x + text_width + 10, text_y + baseline + 10)
-        # cv2.putText(overlay, countdown_text, (text_x, text_y+10), font, font_scale_countdown, (0, 0, 0), thickness_countdown)
-        
-        # Progress bar for overlay
+        # progress bar
         progress = min(count / cycle_count, 1.0) if cycle_count else 0
         draw_progress_bar(overlay, progress)
 
-        # cv2.imshow("Display", overlay)
+        cv2.imshow("Display", overlay)
+        if cv2.waitKey(30) & 0xFF == ord('q'):
+            exit_flag = True
+            cap.release()
+            return
 
-        if i == "GO":
-            timestamp = int(time.time() * 1000)  # 13-digit ms precision
-            filename = os.path.basename(path)
-            label = gesture_labels.get(filename, filename)
-            class_index = video_list.index(path)
-            # Show hold message for 8 seconds (no class 16 sent)
-            hold_frame = overlay.copy()
-            hold_text = "Close your hand!"
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
-            text_x = (hold_frame.shape[1] - text_size[0]) // 2
-            text_y = 120
-            cv2.putText(hold_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
-            for _ in range(8):
-                cv2.imshow("Display", hold_frame)
-                if cv2.waitKey(1000) & 0xFF == ord('q'):
-                    exit_flag = True
-                    return
-        if cv2.waitKey(1000) & 0xFF == ord('q'):
+    # At the moment red text appears, send class for CLOSE
+    send_gesture_classification(2)
+
+    # ---- 2) PLAYBACK with TITLE + RED TEXT ----
+    last_frame = first_frame
+    curr = frame
+    keep_ret = ret
+    while True:
+        if keep_ret:
+            img = curr
+            keep_ret = False
+        else:
+            ret, img = cap.read()
+            if not ret:
+                break
+
+        resized = cv2.resize(img, (720, 720))
+        last_frame = resized.copy()
+
+        # TITLE (black)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        tsize, _ = cv2.getTextSize(label, font, 1.2, 3)
+        tx = (resized.shape[1] - tsize[0]) // 2
+        cv2.putText(resized, label, (tx, 60), font, 1.2, (0, 0, 0), 3)
+
+        # RED instruction
+        red_text = "Close your hand!"
+        rsize, _ = cv2.getTextSize(red_text, font, 1.5, 3)
+        rx = (resized.shape[1] - rsize[0]) // 2
+        cv2.putText(resized, red_text, (rx, 120), font, 1.5, (0, 0, 255), 3)
+
+        # progress
+        progress = min(count / cycle_count, 1.0) if cycle_count else 0
+        draw_progress_bar(resized, progress)
+
+        cv2.imshow("Display", resized)
+        if cv2.waitKey(delay_ms) & 0xFF == ord('q'):
+            exit_flag = True
+            cap.release()
+            return
+
+    cap.release()
+
+    # ---- 3) FREEZE on LAST frame (TITLE + RED TEXT) ----
+    t1 = time.time()
+    while time.time() - t1 < POST_HOLD_S:
+        overlay = last_frame.copy()
+
+        # TITLE
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        tsize, _ = cv2.getTextSize(label, font, 1.2, 3)
+        tx = (overlay.shape[1] - tsize[0]) // 2
+        cv2.putText(overlay, label, (tx, 60), font, 1.2, (0, 0, 0), 3)
+
+        # RED instruction
+        red_text = "HOLD CLOSED!"
+        rsize, _ = cv2.getTextSize(red_text, font, 1.5, 3)
+        rx = (overlay.shape[1] - rsize[0]) // 2
+        cv2.putText(overlay, red_text, (rx, 120), font, 1.5, (0, 0, 255), 3)
+
+        # progress
+        progress = min(count / cycle_count, 1.0) if cycle_count else 0
+        draw_progress_bar(overlay, progress)
+
+        cv2.imshow("Display", overlay)
+        if cv2.waitKey(30) & 0xFF == ord('q'):
             exit_flag = True
             return
 
-    # --- Hold last frame for 2 seconds ---
-    progress = min(count / cycle_count, 1.0) if cycle_count else 0
-    draw_progress_bar(last_frame, progress)
-    
-    cv2.imshow("Display", last_frame)
-    if cv2.waitKey(1000) & 0xFF == ord('q'):
-        exit_flag = True
-        return
-
-    # Do NOT destroy the window here — reused across calls
-
-def play_balanced_videos_for(duration):
-    start_time = time.time()
-    while time.time() - start_time < duration:
-        video_path = get_least_played_video()
-        gesture_index = video_list.index(video_path)
-        timestamp = int(time.time())
-        play_order.append((video_path, timestamp))
-        #print(f"[PLAY] {os.path.basename(video_path)} (index: {gesture_index + 1})")
-        play_video_then_countdown(video_path, gesture_index)
-        if time.time() - start_time >= duration:
-            break
-        
 def show_break(duration):
+    """
+    OPEN/RELAX phase:
+    - Freeze on first frame (no red text) for PREROLL_S
+    - Then show red "Open/relax your hand!" while playing the video
+    - Freeze on final frame for the full `duration` (your break length)
+    """
     global exit_flag
-    # Load hand open video
     open_video_path = os.path.join(script_dir, "../Videos/Handopen2.mp4")
     cap = cv2.VideoCapture(open_video_path)
-    last_frame = None
-    fps = 30
-    delay = int(1000 / fps) if fps > 0 else 33
-
     if not cap.isOpened():
         print(f"Could not load hand open video: {open_video_path}")
         return
 
-    # --- Step 1: Play video frames with progress bar ---
-    global count, cycle_count
-    progress = min(count / cycle_count, 1.0) if cycle_count else 0
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    if not fps or fps <= 1e-3:
+        fps = 30.0
+    delay_ms = int(1000.0 / fps)
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        frame = cv2.resize(frame, (720, 720))
-        last_frame = frame.copy()
+    # Read first frame
+    ret, frame = cap.read()
+    if not ret:
+        cap.release()
+        print("No valid frame found in hand open video.")
+        return
+    first_frame = cv2.resize(frame, (720, 720))
 
-        # Draw label at top center
+    # Title once
+    label = "Wait to Open Hand..."
+
+    # --- Freeze on FIRST frame (no red text yet) ---
+    start = time.time()
+    while time.time() - start < PREROLL_S:
+        overlay = first_frame.copy()
+
+        # Title (black)
         font = cv2.FONT_HERSHEY_SIMPLEX
-        label = "Wait to Open Hand..."
-        text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
-        text_x = (frame.shape[1] - text_size[0]) // 2
-        text_y = 60
-        cv2.putText(frame, label, (text_x, text_y), font, 1.2, (0, 0, 0), 3)
+        cv2.putText(overlay, label, 
+                    ((overlay.shape[1] - cv2.getTextSize(label, font, 1.2, 3)[0][0]) // 2, 60),
+                    font, 1.2, (0, 0, 0), 3)
 
-        # Draw progress bar on video frame
-        draw_progress_bar(frame, progress)
-        cv2.imshow("Display", frame)
+        # Progress
+        progress = min(count / cycle_count, 1.0) if cycle_count else 0
+        draw_progress_bar(overlay, progress)
 
-        if cv2.waitKey(delay) & 0xFF == ord('q'):
+        cv2.imshow("Display", overlay)
+        if cv2.waitKey(30) & 0xFF == ord('q'):
             exit_flag = True
+            cap.release()
             return
+
+    # Start classification when red text shows
+    send_gesture_classification(1)
+
+    # --- PLAYBACK with RED instruction text ---
+    last_frame = first_frame
+    while True:
+        if ret:
+            curr = frame
+        else:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            curr = frame
+
+        resized = cv2.resize(curr, (720, 720))
+        last_frame = resized.copy()
+
+        # Title (black)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(resized, label, 
+                    ((resized.shape[1] - cv2.getTextSize(label, font, 1.2, 3)[0][0]) // 2, 60),
+                    font, 1.2, (0, 0, 0), 3)
+
+        # RED instruction
+        instruct = "Open/relax your hand!"
+        tsize, _ = cv2.getTextSize(instruct, font, 1.5, 3)
+        cv2.putText(resized, instruct, 
+                    ((resized.shape[1] - tsize[0]) // 2, 120),
+                    font, 1.5, (0, 0, 255), 3)
+
+        # Progress bar
+        progress = min(count / cycle_count, 1.0) if cycle_count else 0
+        draw_progress_bar(resized, progress)
+
+        cv2.imshow("Display", resized)
+        if cv2.waitKey(delay_ms) & 0xFF == ord('q'):
+            exit_flag = True
+            cap.release()
+            return
+
+        ret, frame = cap.read()
 
     cap.release()
 
-    if last_frame is None:
-        print("No valid frame found in hand open video.")
-        return
+    # --- Freeze on LAST frame for full `duration` (break window) ---
+    hold_start = time.time()
+    while time.time() - hold_start < duration:
+        overlay = last_frame.copy()
 
-    # --- Step 2: Freeze last frame and show countdown with progress bar ---
-    start = time.time()
-    send_gesture_classification(1)
-
-
-    while time.time() - start < duration:
-        remaining = math.ceil(duration - (time.time() - start))
-        display_frame = last_frame.copy()
-        
-        #label at top
+        # Title
         font = cv2.FONT_HERSHEY_SIMPLEX
-        label = "Wait to Open Hand..."
-        text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
-        text_x = (display_frame.shape[1] - text_size[0]) // 2
-        text_y = 60
-        cv2.putText(display_frame, label, (text_x, text_y), font, 1.2, (0, 0, 0), 3)
+        cv2.putText(overlay, label, 
+                    ((overlay.shape[1] - cv2.getTextSize(label, font, 1.2, 3)[0][0]) // 2, 60),
+                    font, 1.2, (0, 0, 0), 3)
 
-        # Text and updated progress
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        hold_text = "Open/relax your hand!"
-        text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
-        text_x = (display_frame.shape[1] - text_size[0]) // 2
-        text_y = 120
-        cv2.putText(display_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
+        # RED instruction
+        instruct = "STAY OPEN/RELAXED!"
+        tsize, _ = cv2.getTextSize(instruct, font, 1.5, 3)
+        cv2.putText(overlay, instruct, 
+                    ((overlay.shape[1] - tsize[0]) // 2, 120),
+                    font, 1.5, (0, 0, 255), 3)
+
+        # Progress bar
         progress = min(count / cycle_count, 1.0) if cycle_count else 0
-        draw_progress_bar(display_frame, progress)
-        
-        cv2.imshow("Display", display_frame)
-        if cv2.waitKey(1000) & 0xFF == ord('q'):
+        draw_progress_bar(overlay, progress)
+
+        cv2.imshow("Display", overlay)
+        if cv2.waitKey(30) & 0xFF == ord('q'):
             exit_flag = True
             return
+
+# def play_video_then_countdown(path, gesture_index):
+#     global exit_flag
+#     cap = cv2.VideoCapture(path)
+#     if not cap.isOpened():
+#         print(f"Cannot open: {path}")
+#         return
+
+#     frame_rate = 60
+#     last_frame = None
+#     cv2.namedWindow("Display", cv2.WINDOW_NORMAL)
+#     cv2.resizeWindow("Display", 720, 720)
+    
+#     # --- Play the video and remember the last frame ---
+#     while True:
+#         ret, frame = cap.read()
+#         if not ret:
+#             break
+#         last_frame = frame.copy()
+        
+#         resized_frame = cv2.resize(frame, (720, 720))
+
+#         # Draw custom title
+#         filename = os.path.basename(path)
+#         label = gesture_labels.get(filename, filename)
+#         # --- Draw centered label with box ---
+#         font = cv2.FONT_HERSHEY_SIMPLEX
+#         font_scale = 1.2
+#         thickness = 3
+#         text_size, baseline = cv2.getTextSize(label, font, font_scale, thickness)
+#         text_width, text_height = text_size
+
+#         # Center position
+#         center_x = resized_frame.shape[1] // 2
+#         text_x = center_x - text_width // 2
+#         text_y = 60  # distance from top
+
+#         # Draw label text
+#         cv2.putText(resized_frame, label, (text_x, text_y), font,
+#                     font_scale, (0, 0, 0), thickness)
+        
+#         # Calculate progress bar based on cycle count
+#         global count, cycle_count
+#         progress = min(count / cycle_count, 1.0) if cycle_count else 0
+#         draw_progress_bar(resized_frame, progress)
+        
+#         cv2.imshow("Display", resized_frame)
+#         last_frame = resized_frame.copy()
+
+#         if cv2.waitKey(int(1500 // frame_rate)) & 0xFF == ord('q'):
+#             exit_flag = True
+#             return
+    
+#     cap.release()
+
+#     if last_frame is None:
+#         print("Error: No valid frame captured.")
+#         return
+
+#     h, w, _ = last_frame.shape
+#     x = int(w * 0.75) - 30  # 75% across width
+#     y = int(h / 2) + 20     # Vertically centered
+
+#     # --- Show 3..2..1 countdown on the last frame ---
+#     skip_countdown = True  # Set to True to skip countdown and jump to GO
+#     send_gesture_classification(2)
+
+#     for i in (["GO"] if skip_countdown else [3, 2, 1, "GO"]):
+#         overlay = last_frame.copy()
+
+#         # --- Title box (reuse your existing title drawing code if needed) ---
+#         font = cv2.FONT_HERSHEY_SIMPLEX
+#         font_scale_title = 1.2
+#         thickness_title = 3
+#         text_size_title, baseline_title = cv2.getTextSize(label, font, font_scale_title, thickness_title)
+#         text_width_title, text_height_title = text_size_title
+#         center_x = overlay.shape[1] // 2
+#         text_x_title = center_x - text_width_title // 2
+#         text_y_title = 60
+
+#         top_left_title = (text_x_title - 10, text_y_title - text_height_title - 10)
+#         bottom_right_title = (text_x_title + text_width_title + 10, text_y_title + baseline_title + 10)
+#         cv2.putText(overlay, label, (text_x_title, text_y_title), font, font_scale_title, (0, 0, 0), thickness_title)
+
+#         # --- Countdown just below title ---
+#         font_scale_countdown = 2.0
+#         thickness_countdown = 4
+#         countdown_text = str(i)
+#         text_size, baseline = cv2.getTextSize(countdown_text, font, font_scale_countdown, thickness_countdown)
+#         text_width, text_height = text_size
+
+#         text_y = text_y_title + 80  # adjust spacing between title and countdown
+#         text_x = center_x - text_width // 2
+
+#         top_left = (text_x - 10, text_y - text_height - 10)
+#         bottom_right = (text_x + text_width + 10, text_y + baseline + 10)
+#         # cv2.putText(overlay, countdown_text, (text_x, text_y+10), font, font_scale_countdown, (0, 0, 0), thickness_countdown)
+        
+#         # Progress bar for overlay
+#         progress = min(count / cycle_count, 1.0) if cycle_count else 0
+#         draw_progress_bar(overlay, progress)
+
+#         # cv2.imshow("Display", overlay)
+
+#         if i == "GO":
+#             timestamp = int(time.time() * 1000)  # 13-digit ms precision
+#             filename = os.path.basename(path)
+#             label = gesture_labels.get(filename, filename)
+#             class_index = video_list.index(path)
+#             # Show hold message for 8 seconds (no class 16 sent)
+#             hold_frame = overlay.copy()
+#             hold_text = "Close your hand!"
+#             font = cv2.FONT_HERSHEY_SIMPLEX
+#             text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
+#             text_x = (hold_frame.shape[1] - text_size[0]) // 2
+#             text_y = 120
+#             cv2.putText(hold_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
+#             for _ in range(8):
+#                 cv2.imshow("Display", hold_frame)
+#                 if cv2.waitKey(1000) & 0xFF == ord('q'):
+#                     exit_flag = True
+#                     return
+#         if cv2.waitKey(1000) & 0xFF == ord('q'):
+#             exit_flag = True
+#             return
+
+#     # --- Hold last frame for 2 seconds ---
+#     progress = min(count / cycle_count, 1.0) if cycle_count else 0
+#     draw_progress_bar(last_frame, progress)
+    
+#     cv2.imshow("Display", last_frame)
+#     if cv2.waitKey(1000) & 0xFF == ord('q'):
+#         exit_flag = True
+#         return
+
+#     # Do NOT destroy the window here — reused across calls
+
+# def play_balanced_videos_for(duration):
+#     start_time = time.time()
+#     while time.time() - start_time < duration:
+#         video_path = get_least_played_video()
+#         gesture_index = video_list.index(video_path)
+#         timestamp = int(time.time())
+#         play_order.append((video_path, timestamp))
+#         #print(f"[PLAY] {os.path.basename(video_path)} (index: {gesture_index + 1})")
+#         play_video_then_countdown(video_path, gesture_index)
+#         if time.time() - start_time >= duration:
+#             break
+        
+# def show_break(duration):
+#     global exit_flag
+#     # Load hand open video
+#     open_video_path = os.path.join(script_dir, "../Videos/Handopen2.mp4")
+#     cap = cv2.VideoCapture(open_video_path)
+#     last_frame = None
+#     fps = 30
+#     delay = int(1000 / fps) if fps > 0 else 33
+
+#     if not cap.isOpened():
+#         print(f"Could not load hand open video: {open_video_path}")
+#         return
+
+#     # --- Step 1: Play video frames with progress bar ---
+#     global count, cycle_count
+#     progress = min(count / cycle_count, 1.0) if cycle_count else 0
+
+#     while True:
+#         ret, frame = cap.read()
+#         if not ret:
+#             break
+#         frame = cv2.resize(frame, (720, 720))
+#         last_frame = frame.copy()
+
+#         # Draw label at top center
+#         font = cv2.FONT_HERSHEY_SIMPLEX
+#         label = "Wait to Open Hand..."
+#         text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
+#         text_x = (frame.shape[1] - text_size[0]) // 2
+#         text_y = 60
+#         cv2.putText(frame, label, (text_x, text_y), font, 1.2, (0, 0, 0), 3)
+
+#         # Draw progress bar on video frame
+#         draw_progress_bar(frame, progress)
+#         cv2.imshow("Display", frame)
+
+#         if cv2.waitKey(delay) & 0xFF == ord('q'):
+#             exit_flag = True
+#             return
+
+#     cap.release()
+
+#     if last_frame is None:
+#         print("No valid frame found in hand open video.")
+#         return
+
+#     # --- Step 2: Freeze last frame and show countdown with progress bar ---
+#     start = time.time()
+#     send_gesture_classification(1)
+
+
+#     while time.time() - start < duration:
+#         remaining = math.ceil(duration - (time.time() - start))
+#         display_frame = last_frame.copy()
+        
+#         #label at top
+#         font = cv2.FONT_HERSHEY_SIMPLEX
+#         label = "Wait to Open Hand..."
+#         text_size, baseline = cv2.getTextSize(label, font, 1.2, 3)
+#         text_x = (display_frame.shape[1] - text_size[0]) // 2
+#         text_y = 60
+#         cv2.putText(display_frame, label, (text_x, text_y), font, 1.2, (0, 0, 0), 3)
+
+#         # Text and updated progress
+#         font = cv2.FONT_HERSHEY_SIMPLEX
+#         hold_text = "Open/relax your hand!"
+#         text_size, _ = cv2.getTextSize(hold_text, font, 1.5, 3)
+#         text_x = (display_frame.shape[1] - text_size[0]) // 2
+#         text_y = 120
+#         cv2.putText(display_frame, hold_text, (text_x, text_y), font, 1.5, (0, 0, 255), 3)
+#         progress = min(count / cycle_count, 1.0) if cycle_count else 0
+#         draw_progress_bar(display_frame, progress)
+        
+#         cv2.imshow("Display", display_frame)
+#         if cv2.waitKey(1000) & 0xFF == ord('q'):
+#             exit_flag = True
+#             return
 
 def draw_progress_bar(frame, progress, max_width=200, height=20):
     """

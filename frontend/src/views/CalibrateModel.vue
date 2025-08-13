@@ -15,28 +15,25 @@
       <!-- Control Buttons -->
       <div class="flex flex-col justify-between h-[500px] ml-4 z-10">
         <div class="flex flex-col gap-2">
-          <span class="text-[#19596e] text-sm">Adder</span>
-          <button @click="increaseTop" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center">
+          <span class="text-[#19596e] text-sm">Close sensitivity</span>
+          <button @click="increaseTop" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer">
             +
           </button>
-          <button @click="decreaseTop" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center"
+          <button @click="decreaseTop" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
           >
             -
           </button>
-          <span class="mt-1 text-[#19596e] text-sm">= {{ attention_adder }}</span>
-
         </div>
         <div class="flex flex-col gap-2">
-          <span class="text-[#19596e] text-sm">Subtractor</span>
-          <button @click="increaseBottom" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center"
+          <span class="text-[#19596e] text-sm">Open sensitivity</span>
+          <button @click="increaseBottom" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
           >
             +
           </button>
-          <button @click="decreaseBottom" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center"
+          <button @click="decreaseBottom" class="w-10 h-10 bg-[#58c2ff] text-white text-2xl flex items-center justify-center cursor-pointer"
           >
             -
           </button>
-          <span class="mt-1 text-[#19596e] text-sm">= {{ attention_subtractor }}</span>
         </div>
       </div>
     </div>
@@ -68,7 +65,9 @@
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted } from "vue";
 import { createAttentionThresholdSocket } from "../ws.js";
-import { trainSVM, beginPylslStream, loadFileToGlove } from "../api.js";
+import { trainSVM, beginPylslStream, loadFileToGlove, endMusePylslStream, } from "../api.js";
+import { isNavigationFailure, NavigationFailureType } from 'vue-router';
+
 
 const router = useRouter();
 const progressHeight = ref(0); // 0 to 100
@@ -104,9 +103,8 @@ function decreaseBottom() {
 }
 
 function sendAttentionValues() {
-  if (socket && socket.readyState === 1) {
-    socket.send(
-      JSON.stringify({
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({
         attention_adder: attention_adder.value,
         attention_subtractor: attention_subtractor.value,
       })
@@ -115,18 +113,25 @@ function sendAttentionValues() {
 }
 
 function goBack() {
-  //add thread closing logic here
+  //terminate muse and pylsl stream
+  endMusePylslStream()
   router.back();
 }
 
 //helper function to convert 0-220 to 0-100 for display on the bar
+const threshold = ref(0); // <-- add this
+
 function getDataNumber(msg) {
   let payload = msg;
   if (typeof msg === "string") {
     try { payload = JSON.parse(msg); } catch {}
   }
 
-  // e.g., { gesture: 'O', attention_threshold: 35 }
+  // If server sends a threshold, keep the live readout in sync
+  if (payload && payload.attention_threshold != null) {
+    threshold.value = Number(payload.attention_threshold);
+  }
+
   const raw =
     typeof payload === "number" ? payload :
     payload?.attention_threshold ?? payload?.progress ?? payload?.value ?? 0;
@@ -137,41 +142,53 @@ function getDataNumber(msg) {
 }
 
 async function loadModel() {
-  //add thread closing logic here too
-
+  //terminate the muselsl and pyslsl stream
+  endMusePylslStream()
   console.log("sending csv file to pi: ", selectedFile.value);
-  try{
-    const response = await loadFileToGlove(selectedFile.value)
-    console.log(response)
-    if (response.success == true){
-      router.push({ path: "Final" });
-    }
-  }catch(error){
-    console.log(error)
-  }
+  router.push({ name: 'Final' })
+  // try{
+  //   const response = await loadFileToGlove(selectedFile.value)
+  //   console.log(response)
+  //   if (response.success == true){
+  //     router.push({ path: "Final" });
+  //   }
+  // }catch(error){
+  //   console.log(error)
+  // }
 }
 
 onMounted(async () => {
   console.log("Selected file:", selectedFile.value);
   try {
-    console.log("training SVM");
     const training_response = await trainSVM(selectedFile.value);
     console.log("trainSVM:", training_response);
 
-    console.log("beginning pylsl");
     const stream_response =await beginPylslStream(selectedFile.value);
     console.log("beginPylslStream:", stream_response);
 
     socket = createAttentionThresholdSocket((data) => {
-      console.log(data);
-      console.log(getDataNumber(data))
+      console.log("WS message: ", data);
+      getDataNumber(data)
     });
 
-    if (socket) {
-      socket.onclose = (event) => {
-        console.log("WebSocket closed:", event);
-      };
+    
+  if (socket) {
+    // If it’s already open (hot-reload cases), send once
+    if (socket.readyState === WebSocket.OPEN) {
+      sendAttentionValues();
+    } else {
+      socket.addEventListener("open", () => {
+        console.log("WS open");
+        sendAttentionValues(); // <-- initial state push
+      });
     }
+    socket.addEventListener("close", (event) => {
+      console.log("WebSocket closed:", event);
+    });
+    socket.addEventListener("error", (e) => {
+      console.error("WebSocket error:", e);
+    });
+  }
   } catch (error) {
     console.log(error);
   }
