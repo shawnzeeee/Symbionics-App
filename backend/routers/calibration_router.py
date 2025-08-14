@@ -7,8 +7,8 @@ from fastapi import WebSocket, WebSocketDisconnect
 calibration_router = APIRouter()
 
 @calibration_router.get("/update-csv")
-def updateCSV(file_name: str):
-    return calibration_service.updateCSV(file_name)
+def updateCSV(filename: str, adder: int, subtractor: int):
+    return calibration_service.updateCSV(filename, adder, subtractor)
 
 @calibration_router.get("/begin-pylsl-stream")
 def begin_pylsl_stream(file_name: str):

@@ -198,16 +198,16 @@ async function loadModel() {
   //terminate the muselsl and pyslsl stream
   endMusePylslStream()
   console.log("sending csv file to pi: ", selectedFile.value);
-  router.push({ name: 'Final' })
-  // try{
-  //   const response = await loadFileToGlove(selectedFile.value)
-  //   console.log(response)
-  //   if (response.success == true){
-  //     router.push({ path: "Final" });
-  //   }
-  // }catch(error){
-  //   console.log(error)
-  // }
+  // router.push({ name: 'Final' })
+  try{
+    const response = await loadFileToGlove(selectedFile.value)
+    console.log(response)
+    if (response.success == true){
+      router.push({ name: 'Final' });
+    }
+  }catch(error){
+    console.log(error)
+  }
 }
 
 onMounted(async () => {

@@ -20,11 +20,11 @@ class CalibrationService:
         self.stream_service = stream_service
 
     # function to append "Calnum", then adder and subtractor to CSV for calibration purposes
-    def updateCSV(filename, adder, subtractor):
+    def updateCSV(self, filename, adder, subtractor):
         # Build the path in the SavedData folder
         if not filename.endswith(".csv"):
             filename = filename + ".csv"
-        save_dir = os.path.join(os.getcwd(), "backend", "SavedData")
+        save_dir = os.path.join(os.getcwd(), "SavedData")
         os.makedirs(save_dir, exist_ok=True)
         csv_path = os.path.join(save_dir, filename)
         print(csv_path)
@@ -42,7 +42,8 @@ class CalibrationService:
         
         # Save back to CSV
         df.to_csv(csv_path, index=False)
-        return df
+        return True
+
 
     #for gathering eeg data, writing to a csv file
     def begin_pylsl_stream(self, file_name):
