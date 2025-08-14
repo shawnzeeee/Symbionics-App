@@ -3,6 +3,17 @@
     <h1 class="text-4xl text-[#075776] mt-10">Calibrate the model</h1>
     <!-- Meter -->
     <div class="relative flex items-center justify-center mt-10">
+      <!-- Classification Label (left) -->
+      <div class="mr-6 flex flex-col items-center justify-center">
+        <span
+          :class="[
+            'text-5xl font-bold drop-shadow',
+            progressHeight > 50 ? 'text-red-500' : 'text-green-500'
+          ]"
+        >
+          {{ progressHeight > 50 ? 'CLOSE' : 'OPEN' }}
+        </span>
+      </div>
       <!-- Bar + outside labels -->
       <div class="flex flex-col items-center">
         <!-- Close (top, outside) -->
@@ -192,6 +203,7 @@ function getDataNumber(msg) {
   const val = clamp(Number(raw), SCALE_MIN, SCALE_MAX);     // 0..220
   const pct = ((val - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100; // 0..100
   progressHeight.value = Math.round(pct);
+  console.log(Math.round(pct));
 }
 
 async function loadModel() {
@@ -212,25 +224,29 @@ async function loadModel() {
 
 onMounted(async () => {
   console.log("Selected file:", selectedFile.value);
-  try {
+  try{
     const fetch_sensitivity_response = await fetchSensitivityValues(selectedFile.value)
-    if (fetch_sensitivity_response){
-      attention_adder.value = fetch_sensitivity_response.data.attention_adder
-      attention_subtractor.value = fetch_sensitivity_response.data.attention_subtractor
-    }
-  
+      if (fetch_sensitivity_response){
+        attention_adder.value = fetch_sensitivity_response.data.attention_adder
+        attention_subtractor.value = fetch_sensitivity_response.data.attention_subtractor
+      }
+  }
+  catch (error){
+    console.log(error);
+  }
+  try {
     const training_response = await trainSVM(selectedFile.value);
     console.log("trainSVM:", training_response);
 
-    // const stream_response =await beginPylslStreamNoFileWrite(selectedFile.value);
-    // console.log("beginPylslStreamNoFileWrite:", stream_response);
+    const stream_response =await beginPylslStreamNoFileWrite(selectedFile.value);
+    console.log("beginPylslStreamNoFileWrite:", stream_response);
 
-    // socket = createAttentionThresholdSocket((data) => {
-    //   console.log("WS message: ", data);
+    socket = createAttentionThresholdSocket((data) => {
+      console.log("WS message: ", data);
 
-    //   //this function converts WS message data to int and sets the height of the bar in the html
-    //   getDataNumber(data)
-    // });
+      //this function converts WS message data to int and sets the height of the bar in the html
+      getDataNumber(data)
+    });
 
     
   if (socket) {
