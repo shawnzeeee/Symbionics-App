@@ -107,7 +107,7 @@
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted } from "vue";
 import { createAttentionThresholdSocket } from "../ws.js";
-import { trainSVM, beginPylslStreamNoFileWrite, loadFileToGlove, endMusePylslStream, updateCSV} from "../api.js";
+import { trainSVM, beginPylslStreamNoFileWrite, loadFileToGlove, endMusePylslStream, updateCSV, fetchSensitivityValues} from "../api.js";
 import { isNavigationFailure, NavigationFailureType } from 'vue-router';
 
 const router = useRouter();
@@ -213,18 +213,24 @@ async function loadModel() {
 onMounted(async () => {
   console.log("Selected file:", selectedFile.value);
   try {
+    const fetch_sensitivity_response = await fetchSensitivityValues(selectedFile.value)
+    if (fetch_sensitivity_response){
+      attention_adder.value = fetch_sensitivity_response.data.attention_adder
+      attention_subtractor.value = fetch_sensitivity_response.data.attention_subtractor
+    }
+  
     const training_response = await trainSVM(selectedFile.value);
     console.log("trainSVM:", training_response);
 
-    const stream_response =await beginPylslStreamNoFileWrite(selectedFile.value);
-    console.log("beginPylslStreamNoFileWrite:", stream_response);
+    // const stream_response =await beginPylslStreamNoFileWrite(selectedFile.value);
+    // console.log("beginPylslStreamNoFileWrite:", stream_response);
 
-    socket = createAttentionThresholdSocket((data) => {
-      console.log("WS message: ", data);
+    // socket = createAttentionThresholdSocket((data) => {
+    //   console.log("WS message: ", data);
 
-      //this function converts WS message data to int and sets the height of the bar in the html
-      getDataNumber(data)
-    });
+    //   //this function converts WS message data to int and sets the height of the bar in the html
+    //   getDataNumber(data)
+    // });
 
     
   if (socket) {
