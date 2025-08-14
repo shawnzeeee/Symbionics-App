@@ -113,6 +113,7 @@ def begin_streaming_data(file_path, start_event, stop_event, record_data_event):
 
 async def check_signal(websocket, stop_event):
     global eeg_buffer, eeg_buffer_lock
+    print("Checking signal")
     try:
         while not stop_event.is_set():
             # Wait until eeg_buffer is ready and has enough data

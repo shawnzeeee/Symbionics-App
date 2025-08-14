@@ -111,6 +111,7 @@
         Load to Glove
       </button>
     </div>
+  <Electrodes v-if="showElectrodes"/>
   </div>
 </template>
 
@@ -120,7 +121,7 @@ import { ref, onMounted } from "vue";
 import { createAttentionThresholdSocket } from "../ws.js";
 import { trainSVM, beginPylslStreamNoFileWrite, loadFileToGlove, endMusePylslStream, updateCSV, fetchSensitivityValues} from "../api.js";
 import { isNavigationFailure, NavigationFailureType } from 'vue-router';
-
+import Electrodes from "../components/Electrodes.vue"
 const router = useRouter();
 const progressHeight = ref(0); // 0 to 100
 const SCALE_MIN = 0;
@@ -131,6 +132,8 @@ const route = useRoute();
 const selectedFile = ref(route.params.filename);
 const attention_adder = ref(15);
 const attention_subtractor = ref(15);
+
+const showElectrodes = ref(false)
 
 let socket = null;
 
@@ -203,7 +206,7 @@ function getDataNumber(msg) {
   const val = clamp(Number(raw), SCALE_MIN, SCALE_MAX);     // 0..220
   const pct = ((val - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100; // 0..100
   progressHeight.value = Math.round(pct);
-  console.log(Math.round(pct));
+  //console.log(Math.round(pct));
 }
 
 async function loadModel() {
@@ -240,9 +243,9 @@ onMounted(async () => {
 
     const stream_response =await beginPylslStreamNoFileWrite(selectedFile.value);
     console.log("beginPylslStreamNoFileWrite:", stream_response);
-
+    showElectrodes.value = true
     socket = createAttentionThresholdSocket((data) => {
-      console.log("WS message: ", data);
+      //console.log("WS message: ", data);
 
       //this function converts WS message data to int and sets the height of the bar in the html
       getDataNumber(data)
