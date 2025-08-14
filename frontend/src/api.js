@@ -26,6 +26,13 @@ export async function updateCSV(filename, adder, subtractor) {
   return response.data;
 }
 
+export async function fetchSensitivityValues(file_name) {
+  const response = await axios.get(
+    `${API_BASE_URL}/fetch-sensitivity-values?file_name=${file_name}`
+  );
+  return response.data;
+}
+
 export async function beginPylslStream(file_name) {
   const response = await axios.get(
     `${API_BASE_URL}/begin-pylsl-stream?file_name=${file_name}`

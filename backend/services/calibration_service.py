@@ -141,6 +141,25 @@ class CalibrationService:
         response = classifier_process.train_classifier(filename)
         return {"data": response}
     
+    def fetch_sensitivity_values(self, filename):
+        if not filename.endswith(".csv"):
+            filename += ".csv"
+        save_dir = os.path.join(os.getcwd(), "SavedData")
+        csv_path = os.path.join(save_dir, filename)
+        df = pd.read_csv(csv_path)
+        if 'CalNum' not in df.columns:
+            print("CalNum column does not exist in the CSV file.")
+            return {"error": "CalNum column not found"}
+        calnum_column = df['CalNum']
+        output = {
+            "data": {
+                "attention_adder": calnum_column[0],
+                "attention_subtractor": calnum_column[1]
+            }
+        }
+        print(output)
+        return output  
+    
     async def begin_checking_attention_threshold(self, websocket):
         if self.pylsl_thread == None:
             print("No pylsl thread")

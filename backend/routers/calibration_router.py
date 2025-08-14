@@ -38,6 +38,10 @@ async def train_svm(file_name: str):
     print(file_name)
     return calibration_service.train_classifier(file_name)
 
+@calibration_router.get("/fetch-sensitivity-values")
+async def fetch_sensitivity_values(file_name: str):
+    return calibration_service.fetch_sensitivity_values(file_name)
+
 @calibration_router.websocket("/attention-threshold")
 async def attention_threshold(websocket: WebSocket):
     await websocket.accept()
