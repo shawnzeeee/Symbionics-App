@@ -669,6 +669,7 @@ def calibrate(record_data_event):
     show_instructions(record_data_event)
     if exit_flag == True:
         exit_flag = False
+        print("exit flag in calibrate triggered")
         cv2.destroyAllWindows()
         return
     global session_start, cycle_count, count
