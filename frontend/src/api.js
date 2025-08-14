@@ -19,6 +19,13 @@ export async function connectMuse(mac_address) {
   return response.data;
 }
 
+export async function updateCSV(filename, adder, subtractor) {
+  const response = await axios.get(
+    `${API_BASE_URL}/update-csv?filename=${filename}&adder=${adder}&subtractor=${subtractor}`
+  );
+  return response.data;
+}
+
 export async function beginPylslStream(file_name) {
   const response = await axios.get(
     `${API_BASE_URL}/begin-pylsl-stream?file_name=${file_name}`
@@ -26,7 +33,27 @@ export async function beginPylslStream(file_name) {
   return response.data;
 }
 
-export async function loadFileToGlove(file_name){
+export async function beginPylslStreamNoFileWrite(file_name) {
+  const response = await axios.get(
+    `${API_BASE_URL}/begin-pylsl-stream-no-file-write?file_name=${file_name}`
+  );
+  return response.data;
+}
+
+export async function endMusePylslStream() {
+  const response = await axios.get(
+    `${API_BASE_URL}/end-muse-pylsl-stream`
+  );
+  return response.data;
+}
+
+export async function trainSVM(file_name) {
+  const response = await axios.get(
+    `${API_BASE_URL}/train-svm?file_name=${file_name}`
+  );
+  return response.data;
+}
+export async function loadFileToGlove(file_name) {
   const response = await axios.get(
     `${API_BASE_URL}/load-file?filename=${file_name}`
   );

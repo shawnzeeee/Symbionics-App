@@ -7,6 +7,3 @@ stream_router = APIRouter()
 def start_stream(mac_address: str):
     return muselsl_stream_service.start_muselsl_stream(mac_address)
 
-
-
-

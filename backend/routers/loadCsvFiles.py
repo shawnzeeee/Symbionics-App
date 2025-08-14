@@ -27,7 +27,6 @@ def delete_csv_file(filename: str):
         print(f"exception occured:{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/load-file")
 def load_file(filename: str):
     try:

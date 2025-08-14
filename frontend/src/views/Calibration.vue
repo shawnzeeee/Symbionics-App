@@ -16,7 +16,7 @@
       </div>
       <button
         @click="beginDataCollection"
-        class="mt-6 bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
+        class="mt-6 bg-[#19596e] text-white px-6 py-2 rounded hover:bg-sky-500 transition cursor-pointer"
       >
         Start Calibration
       </button>
@@ -26,7 +26,7 @@
     <div class="absolute bottom-6 left-6">
       <button
         @click="goBack"
-        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
+        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition cursor-pointer"
       >
         Back
       </button>
@@ -36,7 +36,7 @@
     <div class="absolute bottom-6 right-6">
       <button
         @click="goToMuseData"
-        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
+        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition cursor-pointer"
       >
         Return to Muse Data Screen
       </button>

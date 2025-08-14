@@ -3,7 +3,7 @@
     class="bg-gray-100 text-[#19596e] min-h-screen flex flex-col items-center justify-center font-sans relative px-4"
   >
     <!-- STEP 1: File Selection -->
-    <div v-if="step === 1" class="flex flex-col items-center">
+    <div class="flex flex-col items-center">
       <h1 class="text-2xl md:text-3xl font-medium text-center mb-8">
         Select Muse data to load to Glove
       </h1>
@@ -50,14 +50,14 @@
         <!-- Load/New Buttons -->
         <div class="flex flex-col justify-center gap-6">
           <button
-            @click="loadFile"
-            class="bg-sky-400 text-[#19596e] px-6 py-3 rounded hover:bg-sky-500 transition"
+            @click="CalibrateModel"
+            class="bg-sky-400 text-[#19596e] px-6 py-3 rounded hover:bg-sky-500 transition cursor-pointer"
           >
             Load
           </button>
           <button
             @click="goToNew"
-            class="bg-sky-400 text-[#19596e] px-6 py-3 rounded hover:bg-sky-500 transition"
+            class="bg-sky-400 text-[#19596e] px-6 py-3 rounded hover:bg-sky-500 transition cursor-pointer"
           >
             New
           </button>
@@ -65,49 +65,16 @@
       </div>
     </div>
 
-    <!-- STEP 2: Loading -->
-    <div
-      v-if="step === 2"
-      class="flex flex-col items-center justify-center text-center"
-    >
-      <h2 class="text-xl md:text-2xl font-medium">
-        Loading screen here maybe<br />while waiting for the Pi to confirm data
-        is sent
-      </h2>
-    </div>
-
-    <!-- STEP 3: Success -->
-    <div
-      v-if="step === 3"
-      class="flex flex-col items-center justify-center text-center"
-    >
-      <h1 class="text-2xl md:text-3xl font-medium mb-8">
-        Select Muse data to load to Glove
-      </h1>
-      <div class="bg-[#528aa3] text-white px-12 py-6 rounded-md text-xl">
-        Data successfully sent
-      </div>
-    </div>
-
     <!-- Back Button -->
     <div class="absolute bottom-6 left-6">
       <button
         @click="goBack"
-        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
+        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition cursor-pointer"
       >
         Back
       </button>
     </div>
 
-    <!-- Next Button for Step 3 -->
-    <div v-if="step === 3" class="absolute bottom-6 right-6">
-      <button
-        @click="goNext"
-        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
-      >
-        Next
-      </button>
-    </div>
   </div>
 </template>
 
@@ -115,9 +82,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { onMounted } from "vue";
-import {loadFileToGlove} from "../api.js"
 
-const step = ref(1);
 const files = ref([]);
 const selectedFile = ref(null);
 const router = useRouter();
@@ -126,22 +91,9 @@ function selectFile(file) {
   selectedFile.value = file;
 }
 
-async function loadFile() {
-  // console.log("test1")
-  // router.push({ name: "CalibrateModel"})
-  try{
-    const response = await loadFileToGlove(selectedFile.value)
-    console.log(response)
-    if (response.success == true){
-      router.push({ path: "Final" });
-    }
-    if (response.message == "USB NOT FOUND")
-    {
-      alert("Failed to load file: NO USB CONNECTION FOUND");
-    }
-  }catch(error){
-    console.log(error)
-  }
+async function CalibrateModel() {
+  console.log("test1")
+  router.push({ name: "CalibrateModel", params: { filename: selectedFile.value }});
 }
 
 function goToNew() {

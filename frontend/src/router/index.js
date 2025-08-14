@@ -32,9 +32,9 @@ const routes = [
     component: () => import("../views/Calibration.vue"), // If you have a Vue file, use it instead
   },
     {
-    path: "/calibratemodel",
+    path: "/calibratemodel/:filename",
     name: "CalibrateModel",
-    component: () => import("../views/CalibrateModel.vue"), // If you have a Vue file, use it instead
+    component: () => import("../views/CalibrateModel.vue"),
   },
 ];
 

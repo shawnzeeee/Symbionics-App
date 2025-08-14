@@ -23,8 +23,6 @@ class MuselslStreamService:
         if self.muselsl_start_event.is_set():
             return {"data": "Streaming"}
         return {"data": "No Stream"}
-    
-    
 
     def end_stream(self):
         self.pylsl_stop_event.set()

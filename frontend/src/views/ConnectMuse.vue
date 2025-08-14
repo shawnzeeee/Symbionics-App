@@ -34,7 +34,9 @@
         <!-- Search button -->
         <button
           @click="searchDevices"
-          class="bg-sky-400 text-[#19596e] font-medium px-4 py-2 rounded hover:bg-sky-500 transition"
+          :disabled="!canSearch"
+          class="bg-sky-400 text-[#19596e] font-medium px-4 py-2 rounded transition cursor-pointer"
+          :class="{ 'opacity-50 cursor-not-allowed': !canSearch }"
         >
           Search
         </button>
@@ -60,7 +62,7 @@
         <button
           :disabled="connecting || connected"
           @click="connectToDevice(device.address)"
-          class="bg-white text-[#19596e] text-sm px-4 py-1 rounded hover:bg-gray-200 transition ml-auto"
+          class="bg-white text-[#19596e] text-sm px-4 py-1 rounded hover:bg-gray-200 transition ml-auto cursor-pointer"
           :class="{ '': connecting || connected }"
         >
           {{
@@ -74,7 +76,7 @@
     <div class="absolute bottom-6 left-6">
       <button
         @click="goBack"
-        class="bg-gray-300 text-[#19596e] px-6 py-3 rounded-lg hover:bg-gray-400 transition"
+        class="bg-gray-300 text-[#19596e] px-6 py-3 rounded-lg hover:bg-gray-400 transition cursor-pointer"
       >
         Back
       </button>
@@ -83,7 +85,7 @@
     <div class="absolute bottom-6 right-6">
       <button
         @click="goNext"
-        class="bg-[#19596e] text-white px-6 py-3 rounded-lg hover:bg-gray-400 transition"
+        class="bg-[#19596e] text-white px-6 py-3 rounded-lg hover:bg-gray-400 transition cursor-pointer"
       >
         Next
       </button>
@@ -119,6 +121,16 @@ async function searchDevices() {
     isSearching.value = false;
   }
 }
+const canSearch = ref(true);
+
+async function cooldown() {
+  if (!canSearch.value) return; // ignore clicks during cooldown
+
+  canSearch.value = false; // disable immediately
+  setTimeout(() => {
+    canSearch.value = true; // re-enable after 10 seconds
+  }, 10000);
+}
 
 async function connectToDevice(address) {
   connectStatus.value = "Connecting...";
@@ -131,7 +143,12 @@ async function connectToDevice(address) {
       connected.value = true; 
       connecting.value = false;
     }
-    else {
+    else if (response.data == "No Stream"){
+      connectStatus.value = "Not Connected";
+      connected.value = false;
+    }
+    else
+    {
       connectStatus.value = "Not Connected";
       connected.value = false;
     }

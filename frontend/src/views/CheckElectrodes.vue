@@ -35,35 +35,31 @@
     <div class="absolute bottom-6 left-6">
       <button
         @click="goBack"
-        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
+        class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition cursor-pointer"
       >
         Back
       </button>
     </div>
 
-    <!-- Return & Begin Buttons -->
-    <div class="absolute bottom-6 right-6 flex flex-col items-end space-y-3">
-
-      
+    <div class="absolute bottom-6 right-6">
+      <!-- First Button -->
       <button
+        v-if="showFirstButton"
         @click="beginDataRecording"
-        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition"
-        
+        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition cursor-pointer"
       >
         Begin Calibration Video
       </button>
 
-    <!-- Return to Muse Data Screen -->
-    <button
-      @click="goToMuseData"
-      class="bg-sky-400 text-[#19596e] px-6 py-2 rounded hover:bg-sky-500 transition"
-    >
-      Return to Muse Data Screen after completion of video
-    </button>
-
-
+      <!-- Second Button -->
+      <button
+        v-else
+        @click="goToMuseData"
+        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-sky-500 transition cursor-pointer"
+      >
+        Return to Muse Data Screen after completion of video
+      </button>
     </div>
-
   </div>
 </template>
 
@@ -76,6 +72,7 @@ import { beginCalibration, disconnectMuse } from "../api.js";
 // Each electrode: true = green, false = red
 const electrodes = ref([false, false, false, false]);
 const router = useRouter();
+const showFirstButton = ref(true);
 
 let socket = null;
 
@@ -129,6 +126,7 @@ async function beginDataRecording() {
   try {
     const response = await beginCalibration();
     console.log(response);
+    showFirstButton.value = false
   } catch (error) {
     console.log(error)
   }
