@@ -46,7 +46,11 @@
       <button
         v-if="showFirstButton"
         @click="beginDataRecording"
-        class="bg-[#19596e] text-white px-6 py-2 rounded hover:bg-[#144452] transition cursor-pointer"
+        :disabled="calibrationStarted"
+        :class="[
+          'px-6 py-2 rounded transition cursor-pointer',
+          calibrationStarted ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#19596e] text-white hover:bg-[#144452]'
+        ]"
       >
         Begin Calibration Video
       </button>
@@ -73,6 +77,7 @@ import { beginCalibration, disconnectMuse } from "../api.js";
 const electrodes = ref([false, false, false, false]);
 const router = useRouter();
 const showFirstButton = ref(true);
+const calibrationStarted = ref(false);
 
 let socket = null;
 
@@ -123,6 +128,9 @@ function goToMuseData() {
 }
 
 async function beginDataRecording() {
+  if (calibrationStarted.value) return; // Prevent extra clicks
+    calibrationStarted.value = true;
+
   try {
     const response = await beginCalibration();
     console.log(response);
