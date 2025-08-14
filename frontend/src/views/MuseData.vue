@@ -53,7 +53,7 @@
             @click="CalibrateModel"
             class="bg-sky-400 text-[#19596e] px-6 py-3 rounded hover:bg-sky-500 transition cursor-pointer"
           >
-            Calibrate Model
+            Load Data
           </button>
           <button
             @click="goToNew"
