@@ -163,13 +163,13 @@ function goBack() {
   router.back();
 }
 
-function saveSettings() {
+async function saveSettings() {
   // use .value from refs
   const adder = Number(attention_adder.value);
   const subtractor = Number(attention_subtractor.value);
   const fname = String(selectedFile.value || "");
 
-  updateCSV(fname, adder, subtractor);
+  await updateCSV(fname, adder, subtractor);
   console.log("csv updated with", attention_adder.value, " and ", attention_subtractor.value)
 }
 
@@ -204,6 +204,8 @@ async function loadModel() {
   console.log("sending csv file to pi: ", selectedFile.value);
   // router.push({ name: 'Final' })
   try{
+    //await saveSettings()
+
     const response = await loadFileToGlove(selectedFile.value)
     console.log(response)
     if (response.success == true){
