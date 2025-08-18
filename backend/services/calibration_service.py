@@ -5,7 +5,7 @@ from services.muselsl_stream_service import MuselslStreamService
 import time
 import os
 import asyncio
-
+import subprocess
 from sklearn.svm import SVC
 import pandas as pd
 from .shared_instances import classifier_process
@@ -191,3 +191,8 @@ class CalibrationService:
             muselsl_thread.join()
         print("Pylsl and muselsl terminated")
         return {"data": "Pylsl and muselsl terminated"}
+    def eject_usb(self):
+        drive_letter = "E"
+        command = f'(New-Object -comObject Shell.Application).NameSpace(17).ParseName("{drive_letter}:").InvokeVerb("Eject")'
+        subprocess.run(["powershell", "-Command", command], shell=True)
+        print(f"Drive {drive_letter}: ejected.")

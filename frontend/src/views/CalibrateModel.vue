@@ -107,7 +107,7 @@
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted } from "vue";
 import { createAttentionThresholdSocket } from "../ws.js";
-import { trainSVM, beginPylslStreamNoFileWrite, loadFileToGlove, endMusePylslStream, updateCSV, fetchSensitivityValues} from "../api.js";
+import { trainSVM, beginPylslStreamNoFileWrite, loadFileToGlove, endMusePylslStream, updateCSV, fetchSensitivityValues, eject_usb, disconnectMuse} from "../api.js";
 import { isNavigationFailure, NavigationFailureType } from 'vue-router';
 import Electrodes from "../components/Electrodes.vue"
 const router = useRouter();
@@ -207,6 +207,8 @@ async function loadModel() {
     //await saveSettings()
 
     const response = await loadFileToGlove(selectedFile.value)
+    eject_usb()
+    disconnectMuse()
     console.log(response)
     if (response.success == true){
       router.push({ name: 'Final' });

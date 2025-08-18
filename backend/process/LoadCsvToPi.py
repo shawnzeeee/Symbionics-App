@@ -5,7 +5,7 @@ from pathlib import Path
 def LoadCsvToPi(filename):
     relative_path = Path(__file__).resolve().parent.parent / "SavedData"
     source_file = relative_path / filename  # Replace with your file path
-    usb_drive_letter = "D"  # Replace with your USB drive letter
+    usb_drive_letter = "E"  # Replace with your USB drive letter
     # target_filename = "test2.csv"  # Optional rename on USB
 
     # === Build the target path ===

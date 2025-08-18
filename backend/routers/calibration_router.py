@@ -3,6 +3,7 @@ from .shared_instances import calibration_service
 # routers/calibration_router.py
 import asyncio, contextlib, json
 from fastapi import WebSocket, WebSocketDisconnect
+import subprocess
 
 calibration_router = APIRouter()
 
@@ -89,3 +90,7 @@ async def attention_threshold(websocket: WebSocket):
 @calibration_router.get("/end-stream")
 def end_stream():
     return calibration_service.disconnect_muse()
+
+@calibration_router.get("/eject_usb")
+def eject_usb():
+    return calibration_service.eject_usb()

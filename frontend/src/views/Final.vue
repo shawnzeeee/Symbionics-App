@@ -7,16 +7,9 @@
     </div>
     <!-- Instructional follow-up box -->
     <div class="bg-[#c6dce5] text-[#19596e] px-8 py-4 rounded-md text-base text-center max-w-xl">
-      Please disconnect the Muse with the disconnect button, and disconnect the Pi from the laptop and proceed with the next steps in the Operational manual.
+      Muse has been disconnected and the glove has been ejected safely. Please unplug the glove from the laptop and proceed with the next steps in the Operational manual.
     </div>
 
-    <!-- Disconnect Button -->
-    <button
-      @click="disconnect"
-      class="mt-4 bg-red-500 text-white underline px-6 py-2 rounded hover:bg-red-600 transition cursor-pointer"
-    >
-      Disconnect Muse
-    </button>
 
     <!-- Button Options -->
     <div class="absolute bottom-6 w-full flex justify-between px-6">
@@ -40,14 +33,14 @@ import { useRouter } from 'vue-router'
 import { disconnectMuse } from "../api.js"; // adjust path as needed
 const router = useRouter()
 
-async function disconnect() {
-  try {
-    const response = await disconnectMuse();
-    console.log(response);
-  } catch (error) {
-    console.log(error);
-  }
-}
+// async function disconnect() {
+//   try {
+//     const response = await disconnectMuse();
+//     console.log(response);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
 
 function goHome() {
   router.push({ name: 'Home' })
